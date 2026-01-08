@@ -1,5 +1,5 @@
 // src/services/api.js
-const API_URL = 'http://localhost:5000/api';
+const API_URL = 'https://zenz-backend.onrender.com/api';
 
 // Get token from localStorage
 const getToken = () => localStorage.getItem('token');
