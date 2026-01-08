@@ -50,7 +50,7 @@ export default function Signup() {
     setError("");
     
     try {
-      const response = await fetch("https://zenz-frontend.onrender.com/api/auth/signup", {
+      const response = await fetch("https://zenz-backend.onrender.com/api/auth/signup", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
