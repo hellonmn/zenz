@@ -423,17 +423,20 @@ export default function TripDetailsPage() {
 
   return (
     <>
-      <div className="min-h-screen bg-gray-50 pb-8">
+      <div className="min-h-screen bg-gray-50">
         {/* Header with Back Button */}
         <div className="sticky top-0 z-40 bg-white shadow-sm">
           <div className="flex items-center justify-between p-4">
-            <button
-              onClick={() => navigate(-1)}
-              className="p-2 hover:bg-gray-100 rounded-full transition-colors"
-            >
-              <i className="fi fi-rr-arrow-left text-xl text-gray-700"></i>
-            </button>
-            <h1 className="text-lg font-bold text-gray-900 truncate max-w-[200px]">{placeName}</h1>
+            <div className="flex items-center">
+              <button
+                onClick={() => navigate(-1)}
+                className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+              >
+                <i className="fi fi-rr-angle-left text-xl text-gray-700"></i>
+              </button>
+              <h1 className="text-lg font-bold text-gray-900 truncate max-w-[200px]">{placeName}</h1>
+
+            </div>
             <div className="flex gap-2">
               <button
                 className="p-2 hover:bg-blue-50 rounded-full transition-colors"
@@ -462,7 +465,7 @@ export default function TripDetailsPage() {
               <img
                 src={images[0]}
                 alt={placeName}
-                className="w-full max-w-2xl h-72 object-cover rounded-2xl"
+                className="w-full h-72 object-cover rounded-2xl"
                 onError={(e) => {
                   e.target.src = "/historic_place.png";
                 }}
@@ -545,7 +548,7 @@ export default function TripDetailsPage() {
         </div>
 
         {/* Content */}
-        <div className="max-w-3xl mx-auto px-4 mt-4 space-y-4">
+        <div className="mx-auto px-4 mt-4 space-y-4">
           {/* Place Info */}
           <div className="bg-white rounded-2xl p-6">
             <h1 className="text-3xl font-extrabold text-gray-900 mb-2">
@@ -697,7 +700,7 @@ export default function TripDetailsPage() {
           </div>
 
           {/* Booking Button */}
-          <div className="sticky bottom-0 bg-white p-4 rounded-t-2xl shadow-lg border-t border-gray-200">
+          <div className="sticky bottom-0 bg-white p-4 px-0 rounded-t-2xl shadow-lg border-t border-gray-200">
             {getBookingButton()}
           </div>
         </div>
