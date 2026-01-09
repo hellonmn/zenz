@@ -1,19 +1,20 @@
-import { useState } from "react";
-import { 
-  Eye, 
-  EyeOff, 
-  Mail, 
-  Lock, 
+import { useState, useEffect } from "react";
+import {
+  Eye,
+  EyeOff,
+  Mail,
+  Lock,
   ArrowRight,
   MapPin,
   Plane,
   ArrowLeft
 } from "lucide-react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import logoImage from "../../assets/logo.jpg";
 
 export default function Login() {
   const navigate = useNavigate();
+  const location = useLocation();
   const [formData, setFormData] = useState({
     email: "",
     password: ""
@@ -21,6 +22,11 @@ export default function Login() {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
+
+  // Get redirect info from location state
+  const redirectTo = location.state?.from || '/';
+  const tripId = location.state?.tripId;
+  const bookTrip = location.state?.bookTrip;
 
   const handleInputChange = (field, value) => {
     setFormData(prev => ({
@@ -50,8 +56,15 @@ export default function Login() {
       // Store token and user info
       localStorage.setItem("token", data.token);
       localStorage.setItem("user", JSON.stringify(data));
-      // Redirect or update UI as needed
-      window.location.href = "/"; // Change to your dashboard route if needed
+
+      // If user was trying to book a trip, store the intent
+      if (tripId && bookTrip) {
+        sessionStorage.setItem('bookTripIntent', JSON.stringify({ tripId, bookTrip: true }));
+        navigate(`/trip/${tripId}`);
+      } else {
+        // Redirect to the page they came from or home
+        window.location.href = redirectTo;
+      }
     } catch (err) {
       setError("An error occurred. Please try again.");
       setIsLoading(false);
@@ -107,6 +120,17 @@ export default function Login() {
         
 
         <div className="flex flex-col gap-6">
+          {bookTrip && tripId && (
+            <div className="bg-blue-50 border border-blue-200 text-blue-800 px-4 py-3 rounded-xl mb-2 text-sm">
+              <div className="flex items-start gap-2">
+                <i className="fi fi-rr-info text-blue-600 mt-0.5"></i>
+                <div>
+                  <p className="font-semibold mb-1">Login Required</p>
+                  <p>Please login to continue booking this trip.</p>
+                </div>
+              </div>
+            </div>
+          )}
           {error && (
             <div className="bg-red-100 text-red-700 px-4 py-2 rounded mb-2 text-sm">{error}</div>
           )}

@@ -50,6 +50,28 @@ export default function DestinationDetailsSheet({ destination, open, onClose }) 
     }
   }, [destination, open]);
 
+  // Check for booking intent after login
+  useEffect(() => {
+    if (open && destination && authService.isAuthenticated()) {
+      const bookingIntent = sessionStorage.getItem('bookTripIntent');
+      if (bookingIntent) {
+        try {
+          const intent = JSON.parse(bookingIntent);
+          if (intent.tripId === destination._id && intent.bookTrip) {
+            // Clear the intent
+            sessionStorage.removeItem('bookTripIntent');
+            // Auto-open booking form
+            setTimeout(() => {
+              setShowBookingForm(true);
+            }, 500);
+          }
+        } catch (error) {
+          console.error('Error parsing booking intent:', error);
+        }
+      }
+    }
+  }, [open, destination]);
+
   // Toggle like function
   const handleToggleLike = async () => {
     if (!authService.isAuthenticated()) {
@@ -73,6 +95,51 @@ export default function DestinationDetailsSheet({ destination, open, onClose }) 
     } finally {
       setLiking(false);
     }
+  };
+
+  // Handle share functionality
+  const handleShare = async () => {
+    const shareUrl = `${window.location.origin}/trip/${destination._id}`;
+
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: placeName,
+          text: `Check out this amazing trip: ${placeName} in ${country}`,
+          url: shareUrl,
+        });
+      } catch (error) {
+        if (error.name !== 'AbortError') {
+          copyToClipboard(shareUrl);
+        }
+      }
+    } else {
+      copyToClipboard(shareUrl);
+    }
+  };
+
+  const copyToClipboard = (text) => {
+    navigator.clipboard.writeText(text).then(() => {
+      alert('Link copied to clipboard!');
+    }).catch(() => {
+      alert(`Share this link: ${text}`);
+    });
+  };
+
+  // Handle Book Now button click
+  const handleBookNow = () => {
+    if (!authService.isAuthenticated()) {
+      // Redirect to login with trip booking intent
+      navigate('/login', {
+        state: {
+          from: window.location.pathname,
+          tripId: destination._id,
+          bookTrip: true
+        }
+      });
+      return;
+    }
+    setShowBookingForm(true);
   };
 
   // Image stack logic
@@ -165,15 +232,23 @@ export default function DestinationDetailsSheet({ destination, open, onClose }) 
             >
               <i className="fi fi-rr-arrow-left text-xl text-gray-700"></i>
             </button>
-            <button
-              className={`absolute top-4 right-4 rounded-full shadow p-2 z-20 transition-all ${
-                isLiked ? 'bg-red-50' : 'bg-white hover:bg-red-50'
-              } ${liking ? 'opacity-50 cursor-not-allowed' : ''}`}
-              onClick={handleToggleLike}
-              disabled={liking}
-            >
-              <i className={`${isLiked ? 'fi fi-sr-heart text-red-500' : 'fi fi-rr-heart text-gray-700'} text-xl`}></i>
-            </button>
+            <div className="absolute top-4 right-4 flex gap-2 z-20">
+              <button
+                className="bg-white rounded-full shadow p-2 hover:bg-blue-50 transition-all"
+                onClick={handleShare}
+              >
+                <i className="fi fi-rr-share text-xl text-gray-700"></i>
+              </button>
+              <button
+                className={`rounded-full shadow p-2 transition-all ${
+                  isLiked ? 'bg-red-50' : 'bg-white hover:bg-red-50'
+                } ${liking ? 'opacity-50 cursor-not-allowed' : ''}`}
+                onClick={handleToggleLike}
+                disabled={liking}
+              >
+                <i className={`${isLiked ? 'fi fi-sr-heart text-red-500' : 'fi fi-rr-heart text-gray-700'} text-xl`}></i>
+              </button>
+            </div>
 
             <div
               className="w-full overflow-x-auto overflow-y-hidden no-scrollbar snap-x snap-mandatory"
@@ -404,7 +479,7 @@ export default function DestinationDetailsSheet({ destination, open, onClose }) 
             style={{ backgroundColor: '#1f3121' }}
             onMouseEnter={(e) => e.target.style.backgroundColor = '#0f1910'}
             onMouseLeave={(e) => e.target.style.backgroundColor = '#1f3121'}
-            onClick={() => setShowBookingForm(true)}
+            onClick={handleBookNow}
           >
             Book Now
           </button>

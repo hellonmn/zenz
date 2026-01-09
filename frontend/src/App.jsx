@@ -14,6 +14,7 @@ import TravelBuddy from "./pages/home/TravelBuddy";
 import Guides from "./pages/home/Guides";
 import Likes from "./pages/home/Likes";
 import MyBookings from "./pages/MyBookings";
+import PublicTripView from "./pages/PublicTripView";
 
 
 function AnimatedRoutes() {
@@ -22,6 +23,9 @@ function AnimatedRoutes() {
   return (
     <AnimatePresence mode="wait">
       <Routes location={location} key={location.pathname}>
+        {/* Public trip view route - no layout needed */}
+        <Route path="/trip/:tripId" element={<PublicTripView />} />
+
         <Route element={<GuestLayout />}>
           <Route path="/" element={<Home />} />
           <Route path="/myBookings" element={<MyBookings />} />

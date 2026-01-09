@@ -63,9 +63,14 @@ export default function BookingForm({ trip, onSuccess, onClose }) {
 
     // Check if user is logged in
     if (!authService.isAuthenticated()) {
-      if (window.confirm('Please login to book a trip. Redirect to login page?')) {
-        navigate('/login');
-      }
+      // Redirect to login with trip booking intent
+      navigate('/login', {
+        state: {
+          from: window.location.pathname,
+          tripId: trip._id,
+          bookTrip: true
+        }
+      });
       return;
     }
 
