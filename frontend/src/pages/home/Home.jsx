@@ -1,16 +1,15 @@
 import Header from "../../components/Header";
 import BottomNav from "../../components/BottomNav";
 import { useState, useRef, useEffect } from "react";
-import DestinationDetailsSheet from "./DestinationDetails";
+import { useNavigate } from "react-router-dom";
 import { tripService } from "../../services/tripService";
 import { likeService } from "../../services/likeService";
 import { authService } from "../../services/authService";
 
 export default function Home() {
+  const navigate = useNavigate();
   const [selectedCategory, setSelectedCategory] = useState("Historical");
   const [selectedNav, setSelectedNav] = useState("Home");
-  const [openSheet, setOpenSheet] = useState(false);
-  const [selectedDestination, setSelectedDestination] = useState(null);
   const [activeStackIndex, setActiveStackIndex] = useState(0);
   const stackRef = useRef(null);
 
@@ -21,6 +20,9 @@ export default function Home() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  // State for location filtering
+  const [selectedLocation, setSelectedLocation] = useState(null);
+
   // Reset activeStackIndex when category changes
   useEffect(() => {
     setActiveStackIndex(0);
@@ -29,22 +31,31 @@ export default function Home() {
     }
   }, [selectedCategory]);
 
-  // Fetch trips by category
+  // Fetch trips by category and location
   useEffect(() => {
     fetchTripsByCategory();
-  }, [selectedCategory]);
+  }, [selectedCategory, selectedLocation]);
 
-  // Fetch popular trips on mount
+  // Fetch popular trips on mount or location change
   useEffect(() => {
     fetchPopularTrips();
     fetchLikedTrips();
-  }, []);
+  }, [selectedLocation]);
 
   const fetchTripsByCategory = async () => {
     try {
       setLoading(true);
       const response = await tripService.getTripsByCategory(selectedCategory);
-      setCategoryTrips(response.data || []);
+      let trips = response.data || [];
+
+      // Filter by city if location is selected
+      if (selectedLocation?.city) {
+        trips = trips.filter(trip =>
+          trip.city?.toLowerCase() === selectedLocation.city.toLowerCase()
+        );
+      }
+
+      setCategoryTrips(trips);
       setError(null);
     } catch (err) {
       console.error('Error fetching trips:', err);
@@ -58,11 +69,24 @@ export default function Home() {
   const fetchPopularTrips = async () => {
     try {
       const response = await tripService.getPopularTrips();
-      setPopularTrips(response.data || []);
+      let trips = response.data || [];
+
+      // Filter by city if location is selected
+      if (selectedLocation?.city) {
+        trips = trips.filter(trip =>
+          trip.city?.toLowerCase() === selectedLocation.city.toLowerCase()
+        );
+      }
+
+      setPopularTrips(trips);
     } catch (err) {
       console.error('Error fetching popular trips:', err);
       setPopularTrips([]);
     }
+  };
+
+  const handleLocationChange = (location) => {
+    setSelectedLocation(location);
   };
 
   const fetchLikedTrips = async () => {
@@ -132,45 +156,10 @@ export default function Home() {
     { id: "Nature", label: "Nature" }
   ];
 
-  // Format trip data for destination sheet
-  const formatTripForSheet = (trip) => ({
-    _id: trip._id,
-    id: trip._id,
-    placeName: trip.placeName,
-    city: trip.city,
-    country: trip.country,
-    flag: trip.flag || "🇮🇳",
-    image: trip.images?.[0] || trip.artImg || "/historic_place.png",
-    images: trip.images || [],
-    description: trip.description,
-    rating: trip.rating,
-    reviews: trip.reviews,
-    price: trip.price,
-    duration: trip.duration,
-    category: trip.category,
-    info: trip.inclusions?.map(inc => ({
-      icon: inc.icon,
-      label: inc.label
-    })) || [
-      { icon: "fi fi-rr-ticket", label: "Ticket" },
-      { icon: "fi fi-rr-hotel", label: "Hotel" },
-      { icon: "fi fi-rr-restaurant", label: "Meal" }
-    ],
-    weather: trip.weather || {
-      icon: "fi fi-rr-clouds-sun",
-      label: "Sunny",
-      temp: 32,
-      time: "8:40 AM"
-    },
-    highlights: trip.highlights || [],
-    itinerary: trip.itinerary || [],
-    availableSlots: trip.availableSlots,
-    maxParticipants: trip.maxParticipants
-  });
 
   return (
     <div className="pb-28 min-h-screen bg-[#f7f8fa]">
-      <Header />
+      <Header onLocationChange={handleLocationChange} />
 
       {/* Search Bar */}
       <div className="relative max-w-xl mx-auto px-4 mt-4">
@@ -325,10 +314,7 @@ export default function Home() {
                       style={{ backgroundColor: '#1f3121' }}
                       onMouseEnter={(e) => e.target.style.backgroundColor = '#0f1910'}
                       onMouseLeave={(e) => e.target.style.backgroundColor = '#1f3121'}
-                      onClick={() => {
-                        setSelectedDestination(formatTripForSheet(trip));
-                        setOpenSheet(true);
-                      }}
+                      onClick={() => navigate(`/trip/${trip._id}`)}
                     >
                       Show details
                     </button>
@@ -418,10 +404,7 @@ export default function Home() {
                       style={{ backgroundColor: '#1f3121' }}
                       onMouseEnter={(e) => e.target.style.backgroundColor = '#0f1910'}
                       onMouseLeave={(e) => e.target.style.backgroundColor = '#1f3121'}
-                      onClick={() => {
-                        setSelectedDestination(formatTripForSheet(trip));
-                        setOpenSheet(true);
-                      }}
+                      onClick={() => navigate(`/trip/${trip._id}`)}
                     >
                       <i className="fi fi-rr-arrow-right text-lg"></i>
                     </button>
@@ -491,10 +474,7 @@ export default function Home() {
                       style={{ backgroundColor: '#1f3121' }}
                       onMouseEnter={(e) => e.target.style.backgroundColor = '#0f1910'}
                       onMouseLeave={(e) => e.target.style.backgroundColor = '#1f3121'}
-                      onClick={() => {
-                        setSelectedDestination(formatTripForSheet(trip));
-                        setOpenSheet(true);
-                      }}
+                      onClick={() => navigate(`/trip/${trip._id}`)}
                     >
                       <i className="fi fi-rr-arrow-right text-lg"></i>
                     </button>
@@ -507,11 +487,6 @@ export default function Home() {
       )}
 
       <BottomNav selected={selectedNav} onSelect={setSelectedNav} />
-      <DestinationDetailsSheet
-        destination={selectedDestination}
-        open={openSheet}
-        onClose={() => setOpenSheet(false)}
-      />
     </div>
   );
 }

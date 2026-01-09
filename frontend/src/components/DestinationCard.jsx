@@ -355,7 +355,7 @@ const DestinationCard = ({
     if (isLiked) {
       // Unsave from backend
       try {
-        await fetch("http://localhost:5000/api/auth/unsave-trip", {
+        await fetch("https://zenz-backend.onrender.com/api/auth/unsave-trip", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -376,7 +376,7 @@ const DestinationCard = ({
     // Save to backend
     setIsLiked(true);
     try {
-      await fetch("http://localhost:5000/api/auth/save-trip", {
+      await fetch("https://zenz-backend.onrender.com/api/auth/save-trip", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

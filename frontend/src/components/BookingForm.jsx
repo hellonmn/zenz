@@ -1,5 +1,5 @@
 // components/BookingForm.jsx
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { bookingService } from '../services/bookingService';
 import { authService } from '../services/authService';
@@ -20,6 +20,34 @@ export default function BookingForm({ trip, onSuccess, onClose }) {
   });
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
+  const [checkingExisting, setCheckingExisting] = useState(true);
+  const [hasExistingBooking, setHasExistingBooking] = useState(false);
+
+  // Check if user already has a booking for this trip
+  useEffect(() => {
+    const checkExistingBooking = async () => {
+      if (!authService.isAuthenticated() || !trip?._id) {
+        setCheckingExisting(false);
+        return;
+      }
+
+      try {
+        const response = await bookingService.getMyBookings();
+        const existingBooking = response.data.find(
+          booking =>
+            booking.trip._id === trip._id &&
+            booking.status !== 'cancelled'
+        );
+        setHasExistingBooking(!!existingBooking);
+      } catch (error) {
+        console.error('Error checking existing bookings:', error);
+      } finally {
+        setCheckingExisting(false);
+      }
+    };
+
+    checkExistingBooking();
+  }, [trip]);
 
   const validateForm = () => {
     const newErrors = {};
@@ -101,6 +129,75 @@ export default function BookingForm({ trip, onSuccess, onClose }) {
   };
 
   const totalPrice = (trip.price || 0) * numberOfPeople;
+
+  // Show loading state while checking
+  if (checkingExisting) {
+    return (
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, y: 20 }}
+        className="w-full max-w-md mx-auto bg-white rounded-2xl shadow-xl p-6"
+      >
+        <div className="flex flex-col items-center justify-center py-8">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-900 mb-4"></div>
+          <p className="text-gray-600">Checking availability...</p>
+        </div>
+      </motion.div>
+    );
+  }
+
+  // Show message if user already has a booking
+  if (hasExistingBooking) {
+    return (
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, y: 20 }}
+        className="w-full max-w-md mx-auto bg-white rounded-2xl shadow-xl p-6"
+      >
+        <div className="flex items-center justify-between mb-6">
+          <h2 className="text-2xl font-bold text-gray-900">Already Booked</h2>
+          {onClose && (
+            <button
+              onClick={onClose}
+              className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+              type="button"
+            >
+              <i className="fi fi-rr-cross text-gray-600"></i>
+            </button>
+          )}
+        </div>
+
+        <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-4 mb-4">
+          <div className="flex items-start gap-3">
+            <i className="fi fi-rr-info text-yellow-600 text-xl mt-0.5"></i>
+            <div>
+              <p className="font-semibold text-yellow-900 mb-1">Booking Already Exists</p>
+              <p className="text-sm text-yellow-800">
+                You already have an active booking for this trip. Please check your bookings page.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div className="flex gap-3">
+          <button
+            onClick={() => navigate('/myBookings')}
+            className="flex-1 py-3 bg-green-900 text-white rounded-xl font-semibold hover:bg-green-800 transition-colors"
+          >
+            View My Bookings
+          </button>
+          <button
+            onClick={onClose}
+            className="flex-1 py-3 border border-gray-300 text-gray-700 rounded-xl font-semibold hover:bg-gray-50 transition-colors"
+          >
+            Close
+          </button>
+        </div>
+      </motion.div>
+    );
+  }
 
   return (
     <motion.div

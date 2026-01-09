@@ -46,16 +46,16 @@ export const authService = {
   uploadProfileImage: async (file) => {
     const formData = new FormData();
     formData.append('profileImage', file);
-    
+
     const token = localStorage.getItem('token');
-    const response = await fetch('http://localhost:5000/api/auth/profile/upload', {
+    const response = await fetch('https://zenz-backend.onrender.com/api/auth/profile/upload', {
       method: 'POST',
       headers: {
         Authorization: `Bearer ${token}`,
       },
       body: formData,
     });
-    
+
     return await response.json();
   },
 
