@@ -395,12 +395,9 @@ export default function TripDetailsPage() {
     if (bookingStatus === 'pending') {
       return (
         <div className="w-full space-y-2">
-          <div className="w-full py-4 bg-yellow-100 text-yellow-800 rounded-2xl font-bold text-lg text-center border-2 border-yellow-300">
-            ⏳ Booking Pending Approval
-          </div>
           <button
             onClick={handleCancelBooking}
-            className="w-full py-3 bg-red-50 text-red-600 rounded-2xl font-semibold border-2 border-red-200 hover:bg-red-100"
+            className="w-full py-3 bg-red-50/20 text-red-400 rounded-2xl font-semibold border-2 border-red-100/20 hover:bg-red-100"
           >
             Cancel Booking
           </button>
@@ -548,159 +545,162 @@ export default function TripDetailsPage() {
         </div>
 
         {/* Content */}
-        <div className="mx-auto px-4 mt-4 space-y-4">
-          {/* Place Info */}
-          <div className="bg-white rounded-2xl p-6">
-            <h1 className="text-3xl font-extrabold text-gray-900 mb-2">
-              {placeName}
-            </h1>
-            <div className="flex items-center gap-2 mb-4">
-              <span className="text-2xl">{flag}</span>
-              <span className="text-gray-700 font-medium text-lg">{country}</span>
-            </div>
-            <p className="text-gray-600 text-base leading-relaxed">
-              {description}
-            </p>
-          </div>
-
-          {/* Price and Duration */}
-          {(destination.price || destination.duration) && (
-            <div className="flex items-center gap-4">
-              {destination.price && (
-                <div className="flex items-center gap-2 bg-green-50 px-5 py-3 rounded-full">
-                  <i className="fi fi-rr-dollar text-green-900"></i>
-                  <span className="text-green-900 font-bold text-lg">${destination.price}</span>
-                </div>
-              )}
-              {destination.duration && (
-                <div className="flex items-center gap-2 bg-blue-50 px-5 py-3 rounded-full">
-                  <i className="fi fi-rr-calendar text-blue-900"></i>
-                  <span className="text-blue-900 font-semibold">{destination.duration}</span>
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* Availability */}
-          {destination.availableSlots !== undefined && destination.maxParticipants && (
+        <div className="mx-auto mt-4 space-y-4">
+          <div className="p-4">
+            {/* Place Info */}
             <div className="bg-white rounded-2xl p-6">
-              <div className="flex items-center justify-between mb-3">
-                <span className="text-sm font-medium text-gray-600">Available Slots</span>
-                <span className="text-xl font-bold text-gray-900">
-                  {destination.availableSlots} / {destination.maxParticipants}
-                </span>
+              <h1 className="text-3xl font-extrabold text-gray-900 mb-2">
+                {placeName}
+              </h1>
+              <div className="flex items-center gap-2 mb-4">
+                <span className="text-2xl">{flag}</span>
+                <span className="text-gray-700 font-medium text-lg">{country}</span>
               </div>
-              <div className="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
-                <div
-                  className="bg-green-500 h-full rounded-full transition-all"
-                  style={{
-                    width: `${(destination.availableSlots / destination.maxParticipants) * 100}%`
+              <p className="text-gray-600 text-base leading-relaxed">
+                {description}
+              </p>
+            </div>
+
+            {/* Price and Duration */}
+            {(destination.price || destination.duration) && (
+              <div className="flex items-center gap-4">
+                {destination.price && (
+                  <div className="flex items-center gap-2 bg-green-50 px-5 py-3 rounded-full">
+                    <i className="fi fi-rr-dollar text-green-900"></i>
+                    <span className="text-green-900 font-bold text-lg">${destination.price}</span>
+                  </div>
+                )}
+                {destination.duration && (
+                  <div className="flex items-center gap-2 bg-blue-50 px-5 py-3 rounded-full">
+                    <i className="fi fi-rr-calendar text-blue-900"></i>
+                    <span className="text-blue-900 font-semibold">{destination.duration}</span>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Availability */}
+            {destination.availableSlots !== undefined && destination.maxParticipants && (
+              <div className="bg-white rounded-2xl p-6">
+                <div className="flex items-center justify-between mb-3">
+                  <span className="text-sm font-medium text-gray-600">Available Slots</span>
+                  <span className="text-xl font-bold text-gray-900">
+                    {destination.availableSlots} / {destination.maxParticipants}
+                  </span>
+                </div>
+                <div className="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
+                  <div
+                    className="bg-green-500 h-full rounded-full transition-all"
+                    style={{
+                      width: `${(destination.availableSlots / destination.maxParticipants) * 100}%`
+                    }}
+                  />
+                </div>
+              </div>
+            )}
+
+            {/* Map and Weather */}
+            <div className="grid grid-cols-2 gap-4">
+              <div className="bg-white rounded-2xl p-4">
+                {coords ? (
+                  <MapContainer
+                    center={[coords.lat, coords.lon]}
+                    zoom={12}
+                    scrollWheelZoom={false}
+                    style={{ width: '100%', height: 120, borderRadius: 12 }}
+                  >
+                    <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+                    <Marker position={[coords.lat, coords.lon]}>
+                      <Popup>{placeName}</Popup>
+                    </Marker>
+                  </MapContainer>
+                ) : (
+                  <div className="w-full h-32 flex items-center justify-center text-gray-400">
+                    <i className="fi fi-rr-map-marker text-3xl"></i>
+                  </div>
+                )}
+                <span className="text-sm text-gray-500 mt-2 block text-center font-medium">Map Location</span>
+              </div>
+
+              <div className="bg-white rounded-2xl p-4 flex flex-col items-center justify-center">
+                {weather ? (
+                  <>
+                    <img
+                      src={`https://openweathermap.org/img/wn/${weather.icon}@2x.png`}
+                      alt={weather.desc}
+                      className="w-16 h-16 mb-1"
+                    />
+                    <span className="text-sm text-gray-500 mb-1">{weather.desc}</span>
+                    <div className="flex items-center gap-1 text-gray-700 font-bold text-2xl">
+                      <span>{weather.temp}°C</span>
+                    </div>
+                    <span className="text-xs font-normal text-gray-400 mt-1">{weather.time}</span>
+                  </>
+                ) : (
+                  <>
+                    <i className="fi fi-rr-clouds-sun text-3xl mb-2 text-yellow-500"></i>
+                    <span className="text-sm text-gray-500 mb-1">Weather</span>
+                    <span className="text-gray-700 font-bold text-2xl">--°C</span>
+                  </>
+                )}
+              </div>
+            </div>
+
+            {/* Info Chips */}
+            {info.length > 0 && (
+              <div className="flex gap-3 flex-wrap">
+                {info.map((chip, index) => (
+                  <div
+                    key={chip.label || index}
+                    className="flex items-center gap-2 bg-white rounded-2xl px-5 py-3 text-sm font-medium text-gray-700 border border-gray-200"
+                  >
+                    <i className={`${chip.icon} text-lg`}></i> {chip.label}
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Highlights */}
+            {destination.highlights && destination.highlights.length > 0 && (
+              <div className="bg-white rounded-2xl p-6">
+                <h3 className="text-xl font-bold text-gray-900 mb-4">Highlights</h3>
+                <ul className="space-y-3">
+                  {destination.highlights.map((highlight, index) => (
+                    <li key={index} className="flex items-start gap-3 text-base text-gray-700">
+                      <i className="fi fi-rr-check text-green-600 text-lg mt-0.5"></i>
+                      <span>{highlight}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {/* Author and Rating */}
+            <div className="flex items-center justify-between bg-white rounded-2xl p-6">
+              <div className="flex items-center gap-3">
+                <img
+                  src={author.avatar}
+                  alt={author.name}
+                  className="w-12 h-12 rounded-full object-cover"
+                  onError={(e) => {
+                    e.target.src = "https://ui-avatars.com/api/?name=Travel+Guide&background=1f3121&color=fff";
                   }}
                 />
+                <div>
+                  <span className="text-xs text-gray-500">Trip by</span>
+                  <p className="text-base text-gray-900 font-semibold">{author.name}</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2 bg-gray-50 px-4 py-2 rounded-full border border-gray-200">
+                <span className="text-orange-500"><i className="fi fi-sr-star text-lg"></i></span>
+                <span className="text-gray-700 font-bold text-base">{rating.toFixed(1)}</span>
               </div>
             </div>
-          )}
 
-          {/* Map and Weather */}
-          <div className="grid grid-cols-2 gap-4">
-            <div className="bg-white rounded-2xl p-4">
-              {coords ? (
-                <MapContainer
-                  center={[coords.lat, coords.lon]}
-                  zoom={12}
-                  scrollWheelZoom={false}
-                  style={{ width: '100%', height: 120, borderRadius: 12 }}
-                >
-                  <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
-                  <Marker position={[coords.lat, coords.lon]}>
-                    <Popup>{placeName}</Popup>
-                  </Marker>
-                </MapContainer>
-              ) : (
-                <div className="w-full h-32 flex items-center justify-center text-gray-400">
-                  <i className="fi fi-rr-map-marker text-3xl"></i>
-                </div>
-              )}
-              <span className="text-sm text-gray-500 mt-2 block text-center font-medium">Map Location</span>
-            </div>
-
-            <div className="bg-white rounded-2xl p-4 flex flex-col items-center justify-center">
-              {weather ? (
-                <>
-                  <img
-                    src={`https://openweathermap.org/img/wn/${weather.icon}@2x.png`}
-                    alt={weather.desc}
-                    className="w-16 h-16 mb-1"
-                  />
-                  <span className="text-sm text-gray-500 mb-1">{weather.desc}</span>
-                  <div className="flex items-center gap-1 text-gray-700 font-bold text-2xl">
-                    <span>{weather.temp}°C</span>
-                  </div>
-                  <span className="text-xs font-normal text-gray-400 mt-1">{weather.time}</span>
-                </>
-              ) : (
-                <>
-                  <i className="fi fi-rr-clouds-sun text-3xl mb-2 text-yellow-500"></i>
-                  <span className="text-sm text-gray-500 mb-1">Weather</span>
-                  <span className="text-gray-700 font-bold text-2xl">--°C</span>
-                </>
-              )}
-            </div>
-          </div>
-
-          {/* Info Chips */}
-          {info.length > 0 && (
-            <div className="flex gap-3 flex-wrap">
-              {info.map((chip, index) => (
-                <div
-                  key={chip.label || index}
-                  className="flex items-center gap-2 bg-white rounded-2xl px-5 py-3 text-sm font-medium text-gray-700 border border-gray-200"
-                >
-                  <i className={`${chip.icon} text-lg`}></i> {chip.label}
-                </div>
-              ))}
-            </div>
-          )}
-
-          {/* Highlights */}
-          {destination.highlights && destination.highlights.length > 0 && (
-            <div className="bg-white rounded-2xl p-6">
-              <h3 className="text-xl font-bold text-gray-900 mb-4">Highlights</h3>
-              <ul className="space-y-3">
-                {destination.highlights.map((highlight, index) => (
-                  <li key={index} className="flex items-start gap-3 text-base text-gray-700">
-                    <i className="fi fi-rr-check text-green-600 text-lg mt-0.5"></i>
-                    <span>{highlight}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
-
-          {/* Author and Rating */}
-          <div className="flex items-center justify-between bg-white rounded-2xl p-6">
-            <div className="flex items-center gap-3">
-              <img
-                src={author.avatar}
-                alt={author.name}
-                className="w-12 h-12 rounded-full object-cover"
-                onError={(e) => {
-                  e.target.src = "https://ui-avatars.com/api/?name=Travel+Guide&background=1f3121&color=fff";
-                }}
-              />
-              <div>
-                <span className="text-xs text-gray-500">Trip by</span>
-                <p className="text-base text-gray-900 font-semibold">{author.name}</p>
-              </div>
-            </div>
-            <div className="flex items-center gap-2 bg-gray-50 px-4 py-2 rounded-full border border-gray-200">
-              <span className="text-orange-500"><i className="fi fi-sr-star text-lg"></i></span>
-              <span className="text-gray-700 font-bold text-base">{rating.toFixed(1)}</span>
-            </div>
           </div>
 
           {/* Booking Button */}
-          <div className="sticky bottom-0 bg-white p-4 px-0 rounded-t-2xl shadow-lg border-t border-gray-200">
+          <div className="sticky bottom-0 bg-white p-4 rounded-t-2xl shadow-lg border-t border-gray-200">
             {getBookingButton()}
           </div>
         </div>
