@@ -1,5 +1,7 @@
 // src/services/api.js
-const API_URL = 'https://zenz-backend.onrender.com/api';
+const API_URL = import.meta.env.VITE_API_URL
+  ? `${import.meta.env.VITE_API_URL}/api`
+  : 'https://zenz-backend.onrender.com/api';
 
 // Get token from localStorage
 const getToken = () => localStorage.getItem('token');
