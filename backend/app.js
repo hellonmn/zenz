@@ -18,6 +18,8 @@ app.use('/api/trips', require('./routes/tripRoutes'));
 app.use('/api/bookings', require('./routes/bookingRoutes'));
 app.use('/api/admin/trips', require('./routes/adminTripRoutes'));
 app.use('/api/admin/bookings', require('./routes/adminBookingRoutes'));
+app.use('/api/admin/users', require('./routes/adminUserRoutes'));
+app.use('/api/admin/categories', require('./routes/adminCategoryRoutes'));
 
 // Health check
 app.get('/health', (req, res) => {

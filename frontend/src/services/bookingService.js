@@ -41,4 +41,18 @@ export const bookingService = {
   getStats: async () => {
     return await apiRequest('/bookings/stats');
   },
+
+  // Get all bookings (admin)
+  getAllBookings: async (filters = {}) => {
+    const queryParams = new URLSearchParams(filters).toString();
+    return await apiRequest(`/bookings?${queryParams}`);
+  },
+
+  // Update booking status (admin)
+  updateStatus: async (id, status, reason = '') => {
+    return await apiRequest(`/bookings/${id}/status`, {
+      method: 'PATCH',
+      body: JSON.stringify({ status, reason }),
+    });
+  },
 };

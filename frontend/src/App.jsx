@@ -2,6 +2,7 @@ import { BrowserRouter as Router, Routes, Route, useLocation } from "react-route
 import { AnimatePresence } from "framer-motion";
 import GuestLayout from "./layouts/GuestLayout";
 import AuthLayout from "./layouts/AuthLayout";
+import AdminLayout from "./layouts/AdminLayout";
 import Signup from "./pages/auth/Signup";
 import Login from "./pages/auth/Login";
 import Dashboard from "./pages/Dashboard";
@@ -17,6 +18,12 @@ import MyBookings from "./pages/MyBookings";
 import PublicTripView from "./pages/PublicTripView";
 import NotFound from "./pages/NotFound";
 import TripDetailsPage from "./pages/TripDetailsPage";
+import AdminDashboard from "./pages/admin/AdminDashboard";
+import TripsManagement from "./pages/admin/TripsManagement";
+import BookingsManagement from "./pages/admin/BookingsManagement";
+import UsersManagement from "./pages/admin/UsersManagement";
+import Analytics from "./pages/admin/Analytics";
+import CategoryManagement from "./pages/admin/CategoryManagement";
 
 
 function AnimatedRoutes() {
@@ -44,6 +51,17 @@ function AnimatedRoutes() {
 
         <Route element={<AuthLayout />}>
           <Route path="/dashboard" element={<Dashboard />} />
+        </Route>
+
+        {/* Admin Routes */}
+        <Route element={<AdminLayout />}>
+          <Route path="/admin" element={<AdminDashboard />} />
+          <Route path="/admin/dashboard" element={<AdminDashboard />} />
+          <Route path="/admin/trips" element={<TripsManagement />} />
+          <Route path="/admin/bookings" element={<BookingsManagement />} />
+          <Route path="/admin/users" element={<UsersManagement />} />
+          <Route path="/admin/categories" element={<CategoryManagement />} />
+          <Route path="/admin/analytics" element={<Analytics />} />
         </Route>
 
         {/* Catch-all 404 route */}
