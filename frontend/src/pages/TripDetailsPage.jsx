@@ -42,6 +42,11 @@ export default function TripDetailsPage() {
   const [errors, setErrors] = useState({});
   const [submitting, setSubmitting] = useState(false);
 
+  // Cancellation states
+  const [showCancelSheet, setShowCancelSheet] = useState(false);
+  const [cancelReason, setCancelReason] = useState('');
+  const [cancelling, setCancelling] = useState(false);
+
   // Fetch trip details
   useEffect(() => {
     const fetchTrip = async () => {
@@ -239,19 +244,29 @@ export default function TripDetailsPage() {
     }
   };
 
-  const handleCancelBooking = async () => {
+  const handleCancelBooking = () => {
+    setShowCancelSheet(true);
+  };
+
+  const confirmCancelBooking = async () => {
     if (!bookingData) return;
 
-    if (window.confirm('Are you sure you want to cancel this booking?')) {
-      try {
-        await bookingService.cancelBooking(bookingData._id);
-        setBookingStatus('none');
-        setBookingData(null);
-        alert('Booking cancelled successfully');
-      } catch (error) {
-        console.error('Error cancelling booking:', error);
-        alert('Failed to cancel booking');
-      }
+    try {
+      setCancelling(true);
+      await bookingService.cancelBooking(bookingData._id, cancelReason);
+
+      // Wait a bit to show cancellation animation
+      await new Promise(resolve => setTimeout(resolve, 1500));
+
+      setBookingStatus('none');
+      setBookingData(null);
+      setShowCancelSheet(false);
+      setCancelReason('');
+    } catch (error) {
+      console.error('Error cancelling booking:', error);
+      setErrors({ cancel: 'Failed to cancel booking' });
+    } finally {
+      setCancelling(false);
     }
   };
 
@@ -323,8 +338,53 @@ export default function TripDetailsPage() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-gray-50">
-        <div className="w-12 h-12 border-4 border-gray-300 border-t-green-900 rounded-full animate-spin"></div>
+      <div className="min-h-screen bg-gray-50">
+        {/* Header Skeleton */}
+        <div className="sticky top-0 z-40 bg-white shadow-sm">
+          <div className="flex items-center justify-between p-4">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-gray-200 rounded-full animate-pulse"></div>
+              <div className="w-32 h-6 bg-gray-200 rounded animate-pulse"></div>
+            </div>
+            <div className="flex gap-2">
+              <div className="w-10 h-10 bg-gray-200 rounded-full animate-pulse"></div>
+              <div className="w-10 h-10 bg-gray-200 rounded-full animate-pulse"></div>
+            </div>
+          </div>
+        </div>
+
+        {/* Image Skeleton */}
+        <div className="bg-white p-4">
+          <div className="w-full h-72 bg-gray-200 rounded-2xl animate-pulse"></div>
+        </div>
+
+        {/* Content Skeleton */}
+        <div className="mx-auto mt-4 space-y-4 p-4">
+          <div className="bg-white rounded-2xl p-6 space-y-4">
+            <div className="w-3/4 h-8 bg-gray-200 rounded animate-pulse"></div>
+            <div className="w-1/2 h-6 bg-gray-200 rounded animate-pulse"></div>
+            <div className="space-y-2">
+              <div className="w-full h-4 bg-gray-200 rounded animate-pulse"></div>
+              <div className="w-full h-4 bg-gray-200 rounded animate-pulse"></div>
+              <div className="w-3/4 h-4 bg-gray-200 rounded animate-pulse"></div>
+            </div>
+          </div>
+
+          <div className="flex gap-4">
+            <div className="w-32 h-12 bg-gray-200 rounded-full animate-pulse"></div>
+            <div className="w-32 h-12 bg-gray-200 rounded-full animate-pulse"></div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div className="bg-white rounded-2xl p-4 h-40 animate-pulse bg-gray-200"></div>
+            <div className="bg-white rounded-2xl p-4 h-40 animate-pulse bg-gray-200"></div>
+          </div>
+        </div>
+
+        {/* Button Skeleton */}
+        <div className="fixed bottom-0 left-0 right-0 bg-white p-4 border-t border-gray-200">
+          <div className="w-full h-14 bg-gray-200 rounded-2xl animate-pulse"></div>
+        </div>
       </div>
     );
   }
@@ -394,10 +454,15 @@ export default function TripDetailsPage() {
 
     if (bookingStatus === 'pending') {
       return (
-        <div className="w-full space-y-2">
+        <div className="w-full space-y-3">
+          <div className="bg-yellow-50 border-l-4 border-yellow-400 p-3 rounded-lg">
+            <p className="text-sm text-yellow-800 font-medium">
+              ⏳ Awaiting Approval - Reference: {bookingData?.bookingReference}
+            </p>
+          </div>
           <button
             onClick={handleCancelBooking}
-            className="w-full py-3 bg-red-50/20 text-red-400 rounded-2xl font-semibold border-2 border-red-100/20 hover:bg-red-100"
+            className="w-full py-3 bg-white text-red-600 rounded-xl font-semibold border-2 border-red-200 hover:bg-red-50"
           >
             Cancel Booking
           </button>
@@ -406,15 +471,27 @@ export default function TripDetailsPage() {
     }
 
     return (
-      <button
-        className="w-full py-4 text-white rounded-2xl font-bold text-lg shadow-lg transition-all hover:shadow-xl"
-        style={{ backgroundColor: '#1f3121' }}
-        onMouseEnter={(e) => e.target.style.backgroundColor = '#0f1910'}
-        onMouseLeave={(e) => e.target.style.backgroundColor = '#1f3121'}
-        onClick={handleBookNow}
-      >
-        Book Now
-      </button>
+      <div className="w-full space-y-3">
+        {/* Pricing Info - Blinkit Style */}
+        <div className="flex items-center justify-between text-sm">
+          <div className="flex items-center gap-2">
+            <i className="fi fi-rr-dollar text-gray-600"></i>
+            <span className="text-gray-600">Price per person</span>
+          </div>
+          <span className="text-gray-900 font-bold text-lg">${destination?.price || 0}</span>
+        </div>
+
+        <button
+          className="w-full py-4 text-white rounded-xl font-bold text-lg shadow-lg transition-all hover:shadow-xl flex items-center justify-center gap-2"
+          style={{ backgroundColor: '#1f3121' }}
+          onMouseEnter={(e) => e.target.style.backgroundColor = '#0f1910'}
+          onMouseLeave={(e) => e.target.style.backgroundColor = '#1f3121'}
+          onClick={handleBookNow}
+        >
+          <span>Book Now</span>
+          <i className="fi fi-rr-arrow-small-right text-xl"></i>
+        </button>
+      </div>
     );
   };
 
@@ -705,6 +782,126 @@ export default function TripDetailsPage() {
           </div>
         </div>
       </div>
+
+      {/* Cancellation Bottom Sheet */}
+      <AnimatePresence>
+        {showCancelSheet && (
+          <motion.div
+            className="fixed inset-0 z-[60] flex items-end justify-center"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+          >
+            <div
+              className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+              onClick={() => !cancelling && setShowCancelSheet(false)}
+            />
+
+            <motion.div
+              className="relative w-full max-w-md bg-white rounded-t-3xl shadow-2xl z-10 overflow-hidden"
+              initial={{ y: '100%' }}
+              animate={{ y: 0 }}
+              exit={{ y: '100%' }}
+              transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+            >
+              {cancelling ? (
+                // Cancelling State
+                <div className="p-8 flex flex-col items-center justify-center min-h-[300px]">
+                  <div className="relative">
+                    <div className="w-20 h-20 border-4 border-gray-200 border-t-red-600 rounded-full animate-spin"></div>
+                    <i className="fi fi-rr-cross-circle absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-2xl text-red-600"></i>
+                  </div>
+                  <p className="text-xl font-semibold text-gray-900 mt-6">Cancelling Booking...</p>
+                  <p className="text-sm text-gray-500 mt-2">Please wait</p>
+                </div>
+              ) : (
+                // Confirmation State
+                <div className="p-6">
+                  <div className="flex items-center justify-between mb-6">
+                    <h2 className="text-2xl font-bold text-gray-900">Cancel Booking</h2>
+                    <button
+                      onClick={() => setShowCancelSheet(false)}
+                      className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+                    >
+                      <i className="fi fi-rr-cross text-gray-600 text-xl"></i>
+                    </button>
+                  </div>
+
+                  {/* Warning */}
+                  <div className="bg-red-50 border border-red-200 rounded-xl p-4 mb-4">
+                    <div className="flex items-start gap-3">
+                      <i className="fi fi-rr-exclamation text-red-600 text-xl mt-0.5"></i>
+                      <div>
+                        <p className="font-semibold text-red-900 mb-1">Are you sure?</p>
+                        <p className="text-sm text-red-800">
+                          This will cancel your booking for <strong>{placeName}</strong>. This action cannot be undone.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Booking Details */}
+                  {bookingData && (
+                    <div className="bg-gray-50 rounded-xl p-4 mb-4">
+                      <div className="flex justify-between items-center mb-2">
+                        <span className="text-sm text-gray-600">Booking Reference</span>
+                        <span className="font-mono font-bold text-gray-900">
+                          {bookingData.bookingReference}
+                        </span>
+                      </div>
+                      <div className="flex justify-between items-center mb-2">
+                        <span className="text-sm text-gray-600">People</span>
+                        <span className="font-semibold text-gray-900">{bookingData.numberOfPeople}</span>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span className="text-sm text-gray-600">Total Amount</span>
+                        <span className="font-bold text-gray-900">${bookingData.totalPrice}</span>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Reason */}
+                  <div className="mb-4">
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Reason for Cancellation (Optional)
+                    </label>
+                    <textarea
+                      value={cancelReason}
+                      onChange={(e) => setCancelReason(e.target.value)}
+                      placeholder="Let us know why you're cancelling..."
+                      rows="3"
+                      className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-red-500 resize-none"
+                    />
+                  </div>
+
+                  {/* Error */}
+                  {errors.cancel && (
+                    <div className="bg-red-50 border border-red-200 rounded-xl p-3 mb-4">
+                      <p className="text-red-700 text-sm">{errors.cancel}</p>
+                    </div>
+                  )}
+
+                  {/* Actions */}
+                  <div className="flex gap-3">
+                    <button
+                      onClick={() => setShowCancelSheet(false)}
+                      className="flex-1 py-3 border-2 border-gray-300 text-gray-700 rounded-xl font-semibold hover:bg-gray-50 transition-colors"
+                    >
+                      Keep Booking
+                    </button>
+                    <button
+                      onClick={confirmCancelBooking}
+                      className="flex-1 py-3 bg-red-600 text-white rounded-xl font-semibold hover:bg-red-700 transition-colors"
+                    >
+                      Yes, Cancel
+                    </button>
+                  </div>
+                </div>
+              )}
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Booking Bottom Sheet */}
       <AnimatePresence>

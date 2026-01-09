@@ -5,6 +5,7 @@ import { useNavigate } from "react-router-dom";
 import { tripService } from "../../services/tripService";
 import { likeService } from "../../services/likeService";
 import { authService } from "../../services/authService";
+import locationService from "../../services/locationService";
 
 export default function Home() {
   const navigate = useNavigate();
@@ -48,11 +49,13 @@ export default function Home() {
       const response = await tripService.getTripsByCategory(selectedCategory);
       let trips = response.data || [];
 
-      // Filter by city if location is selected
+      // STRICT: Only show trips from the selected city
       if (selectedLocation?.city) {
-        trips = trips.filter(trip =>
-          trip.city?.toLowerCase() === selectedLocation.city.toLowerCase()
-        );
+        trips = trips.filter(trip => {
+          // Ensure trip has a city and it matches exactly (case-insensitive)
+          if (!trip.city) return false;
+          return trip.city.trim().toLowerCase() === selectedLocation.city.trim().toLowerCase();
+        });
       }
 
       setCategoryTrips(trips);
@@ -71,11 +74,13 @@ export default function Home() {
       const response = await tripService.getPopularTrips();
       let trips = response.data || [];
 
-      // Filter by city if location is selected
+      // STRICT: Only show trips from the selected city
       if (selectedLocation?.city) {
-        trips = trips.filter(trip =>
-          trip.city?.toLowerCase() === selectedLocation.city.toLowerCase()
-        );
+        trips = trips.filter(trip => {
+          // Ensure trip has a city and it matches exactly (case-insensitive)
+          if (!trip.city) return false;
+          return trip.city.trim().toLowerCase() === selectedLocation.city.trim().toLowerCase();
+        });
       }
 
       setPopularTrips(trips);
@@ -179,24 +184,30 @@ export default function Home() {
 
       {/* Banner */}
       <div className="flex p-4 relative">
-        {/* Ambient Glow Effect */}
-        <div
-          className="absolute inset-0 z-0 rounded-4xl blur-2xl opacity-60 pointer-events-none"
-          style={{
-            backgroundImage: 'url(/banner.jpg)',
-            backgroundSize: 'cover',
-            backgroundPosition: 'center',
-            filter: 'blur(80px)',
-            transform: 'scale(0.85)',
-          }}
-          aria-hidden="true"
-        />
+        {loading ? (
+          <div className="w-full h-52 bg-gray-200 rounded-4xl animate-pulse"></div>
+        ) : (
+          <>
+            {/* Ambient Glow Effect */}
+            <div
+              className="absolute inset-0 z-0 rounded-4xl blur-2xl opacity-60 pointer-events-none"
+              style={{
+                backgroundImage: 'url(/banner.jpg)',
+                backgroundSize: 'cover',
+                backgroundPosition: 'center',
+                filter: 'blur(80px)',
+                transform: 'scale(0.85)',
+              }}
+              aria-hidden="true"
+            />
 
-        <div
-          className="mb-4 w-full h-52 rounded-4xl bg-cover bg-center relative z-10"
-          style={{ backgroundImage: 'url(/banner.jpg)' }}
-          aria-label="Travel Banner"
-        />
+            <div
+              className="mb-4 w-full h-52 rounded-4xl bg-cover bg-center relative z-10"
+              style={{ backgroundImage: 'url(/banner.jpg)' }}
+              aria-label="Travel Banner"
+            />
+          </>
+        )}
       </div>
 
       {/* Category Tabs */}
@@ -222,10 +233,39 @@ export default function Home() {
           <h2 className="text-xl font-bold text-gray-900">Places: {selectedCategory}</h2>
         </div>
 
-        {/* Loading State */}
+        {/* Loading State - Skeleton */}
         {loading && (
-          <div className="flex justify-center items-center py-12">
-            <div className="w-8 h-8 border-4 border-gray-300 border-t-green-900 rounded-full animate-spin"></div>
+          <div className="flex gap-2 overflow-x-auto no-scrollbar pb-2">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="min-w-[270px] max-w-xs rounded-4xl bg-gray-100 p-5 py-0 flex-shrink-0 flex flex-col gap-3 mt-8 animate-pulse">
+                {/* Art Image Skeleton */}
+                <div className="relative pt-3 w-full">
+                  <div className="absolute -top-6 w-full">
+                    <div className="flex items-center justify-center">
+                      <div className="w-40 h-40 bg-gray-200 rounded-full"></div>
+                    </div>
+                  </div>
+                  <div className="flex h-28"></div>
+                  {/* Rating and Like Skeleton */}
+                  <div className="absolute top-4 left-1 bg-gray-200 px-5 py-3 rounded-full w-16 h-8"></div>
+                  <div className="absolute top-4 right-1 w-10 h-10 bg-gray-200 rounded-full"></div>
+                </div>
+
+                {/* Content Skeleton */}
+                <div className="flex flex-col gap-2 w-full items-center">
+                  <div className="w-32 h-6 bg-gray-200 rounded"></div>
+                  <div className="w-20 h-4 bg-gray-200 rounded"></div>
+                  <div className="w-full h-10 bg-gray-200 rounded mt-2"></div>
+                  <div className="flex gap-2 w-full justify-center mt-2">
+                    <div className="w-16 h-4 bg-gray-200 rounded"></div>
+                    <div className="w-16 h-4 bg-gray-200 rounded"></div>
+                  </div>
+                </div>
+
+                {/* Button Skeleton */}
+                <div className="w-full h-10 bg-gray-200 rounded-3xl rounded-b-none mt-2"></div>
+              </div>
+            ))}
           </div>
         )}
 
@@ -245,7 +285,24 @@ export default function Home() {
         {/* No Trips State */}
         {!loading && !error && categoryTrips.length === 0 && (
           <div className="text-center py-12">
-            <p className="text-gray-500">No trips available in this category</p>
+            <i className="fi fi-rr-search-location text-4xl text-gray-400 mb-3"></i>
+            <p className="text-gray-700 font-semibold mb-1">No trips found</p>
+            <p className="text-gray-500 text-sm">
+              {selectedLocation?.city
+                ? `No ${selectedCategory.toLowerCase()} trips available in ${selectedLocation.city}`
+                : `No trips available in this category`}
+            </p>
+            {selectedLocation?.city && (
+              <button
+                onClick={() => {
+                  locationService.clearLocation();
+                  window.location.reload();
+                }}
+                className="mt-4 px-4 py-2 bg-green-900 text-white rounded-lg text-sm hover:bg-green-800"
+              >
+                Clear Location Filter
+              </button>
+            )}
           </div>
         )}
 
@@ -349,12 +406,48 @@ export default function Home() {
             View all
           </button>
         </div>
-        
-        {popularTrips.length === 0 ? (
-          <div className="text-center py-8">
-            <p className="text-gray-500">No popular destinations available</p>
+
+        {/* Skeleton Loading for Popular Trips */}
+        {loading && (
+          <div className="flex gap-4 overflow-x-auto no-scrollbar pb-4">
+            {[1, 2, 3].map((i) => (
+              <div
+                key={i}
+                className="min-w-[310px] max-w-[310px] bg-white rounded-2xl flex-shrink-0 flex flex-col overflow-hidden border border-gray-100 animate-pulse"
+              >
+                {/* Image Skeleton */}
+                <div className="p-3 pb-0">
+                  <div className="w-full h-40 bg-gray-200 rounded-xl"></div>
+                </div>
+
+                {/* Content Skeleton */}
+                <div className="flex flex-col gap-2 px-4 pt-3 pb-4">
+                  <div className="w-32 h-5 bg-gray-200 rounded"></div>
+                  <div className="flex gap-2">
+                    <div className="w-16 h-4 bg-gray-200 rounded"></div>
+                    <div className="w-20 h-4 bg-gray-200 rounded"></div>
+                  </div>
+                  <div className="flex items-center justify-between mt-2">
+                    <div className="w-24 h-4 bg-gray-200 rounded"></div>
+                    <div className="w-9 h-9 bg-gray-200 rounded-full"></div>
+                  </div>
+                </div>
+              </div>
+            ))}
           </div>
-        ) : (
+        )}
+
+        {!loading && popularTrips.length === 0 ? (
+          <div className="text-center py-8">
+            <i className="fi fi-rr-map-marker-cross text-3xl text-gray-400 mb-2"></i>
+            <p className="text-gray-600 font-medium mb-1">No popular destinations</p>
+            <p className="text-gray-500 text-sm">
+              {selectedLocation?.city
+                ? `No popular trips available in ${selectedLocation.city}`
+                : 'No popular destinations available'}
+            </p>
+          </div>
+        ) : !loading ? (
           <div className="flex gap-4 overflow-x-auto no-scrollbar pb-4 snap-x snap-mandatory">
             {popularTrips.map(trip => (
               <div
@@ -413,7 +506,7 @@ export default function Home() {
               </div>
             ))}
           </div>
-        )}
+        ) : null}
       </div>
 
       {/* My Saved Section */}
