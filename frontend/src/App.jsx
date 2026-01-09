@@ -15,6 +15,7 @@ import Guides from "./pages/home/Guides";
 import Likes from "./pages/home/Likes";
 import MyBookings from "./pages/MyBookings";
 import PublicTripView from "./pages/PublicTripView";
+import NotFound from "./pages/NotFound";
 
 
 function AnimatedRoutes() {
@@ -43,6 +44,9 @@ function AnimatedRoutes() {
         <Route element={<AuthLayout />}>
           <Route path="/dashboard" element={<Dashboard />} />
         </Route>
+
+        {/* Catch-all 404 route */}
+        <Route path="*" element={<NotFound />} />
       </Routes>
     </AnimatePresence>
   );
