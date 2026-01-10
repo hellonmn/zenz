@@ -3,6 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { eventService } from "../services/eventService";
 import { authService } from "../services/authService";
+import logoImage from "../assets/logo.jpg";
 
 export default function EventDetails() {
   const { slug } = useParams();
@@ -133,28 +134,35 @@ export default function EventDetails() {
 
   return (
     <div className="min-h-screen bg-gray-50 pb-24">
-      {/* Back and Share Buttons */}
-      <div className="fixed top-4 left-0 right-0 z-20 px-4 flex items-center justify-between">
-        <button
-          onClick={() => navigate(-1)}
-          className="w-10 h-10 bg-white/90 backdrop-blur-md rounded-full flex items-center justify-center text-gray-900 shadow-lg"
-        >
-          <i className="fi fi-rr-arrow-left"></i>
-        </button>
-        <button
-          onClick={() =>
-            navigator.share?.({
-              title: event.title,
-              url: window.location.href,
-            })
-          }
-          className="w-10 h-10 bg-white/90 backdrop-blur-md rounded-full flex items-center justify-center text-gray-900 shadow-lg"
-        >
-          <i className="fi fi-rr-share"></i>
-        </button>
+      {/* Header with Logo */}
+      <div className="fixed top-0 left-0 right-0 z-20 bg-white/95 backdrop-blur-md">
+        <div className="px-4 py-3 flex items-center justify-between">
+          <button
+            onClick={() => navigate(-1)}
+            className="w-10 h-10 bg-gray-100 hover:bg-gray-200 rounded-full flex items-center justify-center text-gray-900 transition-colors"
+          >
+            <i className="fi fi-rr-arrow-left"></i>
+          </button>
+
+          <div className="flex items-center gap-2">
+            <img src={logoImage} className="size-14" alt="" />
+          </div>
+
+          <button
+            onClick={() =>
+              navigator.share?.({
+                title: event.title,
+                url: window.location.href,
+              })
+            }
+            className="w-10 h-10 bg-gray-100 hover:bg-gray-200 rounded-full flex items-center justify-center text-gray-900 transition-colors"
+          >
+            <i className="fi fi-rr-share"></i>
+          </button>
+        </div>
       </div>
 
-      <div className="">
+      <div className="pt-16">
         {/* Hero Banner - Portrait Ratio */}
         <div className="px-4 pt-4">
           {event.bannerImage && (
@@ -482,11 +490,14 @@ export default function EventDetails() {
       <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4">
         {userBooking ? (
           <div className="space-y-2">
+            <p className="text-center text-sm text-gray-600">
+              Reference: <span className="font-semibold">{userBooking.bookingReference}</span>
+            </p>
             <div className={`w-full py-4 rounded-2xl font-bold text-lg flex items-center justify-center gap-2 ${
               userBooking.status === 'confirmed'
-                ? 'bg-green-100 text-green-700 border-2 border-green-300'
+                ? 'bg-green-50 text-green-700 border-2 border-green-200'
                 : userBooking.status === 'pending'
-                ? 'bg-yellow-100 text-yellow-700 border-2 border-yellow-300'
+                ? 'bg-yellow-50 text-yellow-700 border-2 border-yellow-200'
                 : 'bg-gray-100 text-gray-700 border-2 border-gray-300'
             }`}>
               <i className={`fi ${
@@ -495,9 +506,7 @@ export default function EventDetails() {
               {userBooking.status === 'confirmed' ? 'Booked' :
                userBooking.status === 'pending' ? 'Booking Pending' : 'Booking ' + userBooking.status}
             </div>
-            <p className="text-center text-sm text-gray-600">
-              Reference: <span className="font-semibold">{userBooking.bookingReference}</span>
-            </p>
+            
           </div>
         ) : (
           <button
