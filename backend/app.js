@@ -16,11 +16,30 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 app.use('/api/auth', require('./routes/authRoutes'));
 app.use('/api/trips', require('./routes/tripRoutes'));
 app.use('/api/bookings', require('./routes/bookingRoutes'));
+// Event routes with error handling
+try {
+  const eventRoutes = require('./routes/eventRoutes');
+  console.log('📍 Loading event routes, type:', typeof eventRoutes);
+  app.use('/api/events', eventRoutes);
+  console.log('✅ Event routes registered at /api/events');
+} catch (error) {
+  console.error('❌ Error loading event routes:', error.message);
+  console.error(error.stack);
+}
+// Admin routes - upload must come BEFORE trips to avoid /:id matching "upload"
+try {
+  const uploadRoutes = require('./routes/uploadRoutes');
+  console.log('✅ Upload routes module loaded, type:', typeof uploadRoutes);
+  app.use('/api/admin/upload', uploadRoutes);
+  console.log('✅ Upload routes registered at /api/admin/upload');
+} catch (error) {
+  console.error('❌ Error loading upload routes:', error.message);
+}
+app.use('/api/admin/events', require('./routes/adminEventRoutes'));
 app.use('/api/admin/trips', require('./routes/adminTripRoutes'));
 app.use('/api/admin/bookings', require('./routes/adminBookingRoutes'));
 app.use('/api/admin/users', require('./routes/adminUserRoutes'));
 app.use('/api/admin/categories', require('./routes/adminCategoryRoutes'));
-app.use('/api/admin/upload', require('./routes/uploadRoutes'));
 
 // Health check
 app.get('/health', (req, res) => {

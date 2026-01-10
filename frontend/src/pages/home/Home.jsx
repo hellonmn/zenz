@@ -182,7 +182,7 @@ export default function Home() {
         </button>
       </div>
 
-      {/* Banner */}
+      {/* Banner - Clickable Event Link */}
       <div className="flex p-4 relative">
         {loading ? (
           <div className="w-full h-52 bg-gray-200 rounded-4xl animate-pulse"></div>
@@ -202,10 +202,14 @@ export default function Home() {
             />
 
             <div
-              className="mb-4 w-full h-52 rounded-4xl bg-cover bg-center relative z-10"
+              onClick={() => navigate('/events/padharo-mhare-fest')}
+              className="mb-4 w-full h-52 rounded-4xl bg-cover bg-center relative z-10 cursor-pointer group transition-transform active:scale-95"
               style={{ backgroundImage: 'url(/banner.jpg)' }}
-              aria-label="Travel Banner"
-            />
+              aria-label="Travel Banner - Click to view Padharo Mhare Fest"
+            >
+              {/* Optional: Add hover effect overlay */}
+              <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 rounded-4xl transition-colors"></div>
+            </div>
           </>
         )}
       </div>

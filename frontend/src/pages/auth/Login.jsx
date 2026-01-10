@@ -57,6 +57,15 @@ export default function Login() {
       localStorage.setItem("token", data.token);
       localStorage.setItem("user", JSON.stringify(data));
 
+      // Check if there's a redirect after login stored (for event booking)
+      const redirectAfterLogin = localStorage.getItem('redirectAfterLogin');
+
+      if (redirectAfterLogin) {
+        // Navigate to the stored redirect path (event page)
+        navigate(redirectAfterLogin);
+        return;
+      }
+
       // If user was trying to book a trip, store the intent
       if (tripId && bookTrip) {
         sessionStorage.setItem('bookTripIntent', JSON.stringify({ tripId, bookTrip: true }));

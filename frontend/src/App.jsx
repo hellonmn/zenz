@@ -18,12 +18,15 @@ import MyBookings from "./pages/MyBookings";
 import PublicTripView from "./pages/PublicTripView";
 import NotFound from "./pages/NotFound";
 import TripDetailsPage from "./pages/TripDetailsPage";
+import EventDetails from "./pages/EventDetails";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import TripsManagement from "./pages/admin/TripsManagement";
 import BookingsManagement from "./pages/admin/BookingsManagement";
 import UsersManagement from "./pages/admin/UsersManagement";
 import Analytics from "./pages/admin/Analytics";
 import CategoryManagement from "./pages/admin/CategoryManagement";
+import EventsManagement from "./pages/admin/EventsManagement";
+import EventForm from "./pages/admin/EventForm";
 
 
 function AnimatedRoutes() {
@@ -34,6 +37,9 @@ function AnimatedRoutes() {
       <Routes location={location} key={location.pathname}>
         {/* Trip details page - standalone route */}
         <Route path="/trip/:tripId" element={<TripDetailsPage />} />
+
+        {/* Event details page - standalone route */}
+        <Route path="/events/:slug" element={<EventDetails />} />
 
         <Route element={<GuestLayout />}>
           <Route path="/" element={<Home />} />
@@ -62,6 +68,9 @@ function AnimatedRoutes() {
           <Route path="/admin/users" element={<UsersManagement />} />
           <Route path="/admin/categories" element={<CategoryManagement />} />
           <Route path="/admin/analytics" element={<Analytics />} />
+          <Route path="/admin/events" element={<EventsManagement />} />
+          <Route path="/admin/events/create" element={<EventForm />} />
+          <Route path="/admin/events/edit/:id" element={<EventForm />} />
         </Route>
 
         {/* Catch-all 404 route */}
