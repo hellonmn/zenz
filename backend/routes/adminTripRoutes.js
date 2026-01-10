@@ -1,23 +1,35 @@
 const express = require('express');
 const router = express.Router();
-const { protect } = require('../middlewares/authMiddleware');
+const { protect, authorize } = require('../middlewares/authMiddleware');
 const {
-  createBooking,
-  getMyBookings,
-  getBookingById,
-  updatePaymentStatus,
-  cancelBooking,
-  getBookingStats
-} = require('../controllers/bookingController');
+  createTrip,
+  updateTrip,
+  deleteTrip,
+  getAllTripsAdmin,
+  updateTripStatus,
+  toggleFeatured,
+  togglePopular,
+  getTripStats
+} = require('../controllers/adminTripController');
 
-// All booking routes require authentication
+// All routes require authentication and admin authorization
 router.use(protect);
+// Uncomment the line below if you have role-based authorization
+// router.use(authorize('admin'));
 
-router.post('/', createBooking);
-router.get('/my-bookings', getMyBookings);
-router.get('/stats', getBookingStats);
-router.get('/:id', getBookingById);
-router.patch('/:id/payment', updatePaymentStatus);
-router.post('/:id/cancel', cancelBooking);
+// Trip CRUD
+router.route('/')
+  .get(getAllTripsAdmin)
+  .post(createTrip);
+
+router.route('/:id')
+  .put(updateTrip)
+  .delete(deleteTrip);
+
+// Trip management
+router.patch('/:id/status', updateTripStatus);
+router.patch('/:id/featured', toggleFeatured);
+router.patch('/:id/popular', togglePopular);
+router.get('/:id/stats', getTripStats);
 
 module.exports = router;

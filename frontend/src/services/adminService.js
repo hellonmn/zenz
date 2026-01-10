@@ -196,8 +196,13 @@ export const adminService = {
       formData.append('images', file);
     });
 
+    // Get API URL from environment or use default
+    const API_URL = import.meta.env.VITE_API_URL
+      ? `${import.meta.env.VITE_API_URL}/api`
+      : 'https://zenz-backend.onrender.com/api';
+
     // Remove Content-Type header to let browser set it with boundary
-    return await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:5000/api'}/admin/upload`, {
+    return await fetch(`${API_URL}/admin/upload`, {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${localStorage.getItem('token')}`,
