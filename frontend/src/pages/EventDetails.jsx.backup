@@ -1,0 +1,639 @@
+import { useState, useEffect } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
+import { eventService } from '../services/eventService';
+
+export default function EventDetails() {
+  const { slug } = useParams();
+  const navigate = useNavigate();
+  const [event, setEvent] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState('about');
+  const [showBookingModal, setShowBookingModal] = useState(false);
+
+  useEffect(() => {
+    fetchEventDetails();
+  }, [slug]);
+
+  const fetchEventDetails = async () => {
+    try {
+      setLoading(true);
+      const response = await eventService.getEventBySlug(slug);
+      setEvent(response.data);
+    } catch (error) {
+      console.error('Error fetching event:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDownloadBrochure = () => {
+    if (event?.brochureUrl) {
+      window.open(event.brochureUrl, '_blank');
+    }
+  };
+
+  const handleBannerClick = () => {
+    setShowBookingModal(true);
+  };
+
+  const formatDate = (date) => {
+    return new Date(date).toLocaleDateString('en-US', {
+      weekday: 'long',
+      month: 'long',
+      day: 'numeric',
+      year: 'numeric'
+    });
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-green-50">
+        <div className="max-w-7xl mx-auto px-4 py-12">
+          <div className="animate-pulse space-y-6">
+            <div className="w-full h-96 bg-gray-200 rounded-3xl"></div>
+            <div className="space-y-4">
+              <div className="h-12 bg-gray-200 rounded w-3/4"></div>
+              <div className="h-6 bg-gray-200 rounded w-1/2"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!event) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-green-50 flex items-center justify-center">
+        <div className="text-center">
+          <i className="fi fi-rr-calendar-exclamation text-6xl text-gray-400 mb-4"></i>
+          <h2 className="text-2xl font-bold text-gray-700 mb-2">Event Not Found</h2>
+          <p className="text-gray-500 mb-6">The event you're looking for doesn't exist.</p>
+          <button
+            onClick={() => navigate('/')}
+            className="px-6 py-3 bg-green-900 text-white rounded-xl hover:bg-green-800"
+          >
+            Go Home
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-green-50">
+      {/* Hero Banner - Clickable */}
+      <div
+        onClick={handleBannerClick}
+        className="relative h-[60vh] min-h-[500px] cursor-pointer group"
+      >
+        <div className="absolute inset-0">
+          {event.bannerImage ? (
+            <img
+              src={event.bannerImage}
+              alt={event.title}
+              className="w-full h-full object-cover"
+            />
+          ) : (
+            <div className="w-full h-full bg-gradient-to-br from-orange-400 via-red-400 to-pink-500"></div>
+          )}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent"></div>
+
+          {/* Click indicator */}
+          <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+            <div className="bg-white/20 backdrop-blur-sm rounded-full p-8">
+              <i className="fi fi-rr-cursor-finger text-white text-6xl"></i>
+              <p className="text-white text-xl font-bold mt-4">Click to Book</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Banner Content */}
+        <div className="absolute bottom-0 left-0 right-0 p-8 md:p-12">
+          <div className="max-w-7xl mx-auto">
+            {event.edition && (
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="inline-block bg-orange-500 text-white px-4 py-2 rounded-full text-sm font-bold mb-4"
+              >
+                {event.edition}
+              </motion.div>
+            )}
+            <motion.h1
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.1 }}
+              className="text-4xl md:text-6xl font-bold text-white mb-4"
+            >
+              {event.title}
+            </motion.h1>
+            <motion.p
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2 }}
+              className="text-xl md:text-2xl text-white/90 max-w-3xl mb-6"
+            >
+              {event.tagline}
+            </motion.p>
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3 }}
+              className="flex flex-wrap gap-4"
+            >
+              <div className="flex items-center gap-2 bg-white/20 backdrop-blur-sm rounded-full px-4 py-2 text-white">
+                <i className="fi fi-rr-calendar"></i>
+                <span>{formatDate(event.startDate)}</span>
+              </div>
+              <div className="flex items-center gap-2 bg-white/20 backdrop-blur-sm rounded-full px-4 py-2 text-white">
+                <i className="fi fi-rr-marker"></i>
+                <span>{event.venue.name}</span>
+              </div>
+            </motion.div>
+          </div>
+        </div>
+      </div>
+
+      {/* Download Brochure Button */}
+      {event.brochureUrl && (
+        <div className="max-w-7xl mx-auto px-4 -mt-8 relative z-10">
+          <motion.button
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            onClick={handleDownloadBrochure}
+            className="w-full md:w-auto bg-gradient-to-r from-orange-500 to-red-500 text-white px-8 py-4 rounded-2xl font-bold text-lg shadow-2xl hover:shadow-3xl transform hover:scale-105 transition-all flex items-center justify-center gap-3"
+          >
+            <i className="fi fi-rr-download text-2xl"></i>
+            Download Event Brochure
+          </motion.button>
+        </div>
+      )}
+
+      {/* Navigation Tabs */}
+      <div className="max-w-7xl mx-auto px-4 mt-12">
+        <div className="bg-white rounded-2xl shadow-lg p-2 flex gap-2 overflow-x-auto">
+          {['about', 'schedule', 'highlights', 'venue', 'organizers'].map((tab) => (
+            <button
+              key={tab}
+              onClick={() => setActiveTab(tab)}
+              className={`px-6 py-3 rounded-xl font-semibold capitalize whitespace-nowrap transition-all ${
+                activeTab === tab
+                  ? 'bg-green-900 text-white'
+                  : 'text-gray-600 hover:bg-gray-100'
+              }`}
+            >
+              {tab}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Content Sections */}
+      <div className="max-w-7xl mx-auto px-4 py-12">
+        <AnimatePresence mode="wait">
+          {activeTab === 'about' && (
+            <motion.div
+              key="about"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              className="bg-white rounded-2xl shadow-lg p-8 md:p-12"
+            >
+              <h2 className="text-3xl font-bold text-gray-900 mb-6">About the Event</h2>
+              <div className="prose prose-lg max-w-none">
+                <p className="text-gray-700 leading-relaxed whitespace-pre-line">
+                  {event.aboutEvent}
+                </p>
+              </div>
+
+              {event.aboutOrganizers && (
+                <div className="mt-12">
+                  <h3 className="text-2xl font-bold text-gray-900 mb-6">About the Organizers</h3>
+                  <p className="text-gray-700 leading-relaxed whitespace-pre-line">
+                    {event.aboutOrganizers}
+                  </p>
+                </div>
+              )}
+            </motion.div>
+          )}
+
+          {activeTab === 'schedule' && (
+            <motion.div
+              key="schedule"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              className="space-y-6"
+            >
+              {event.schedule?.map((daySchedule, idx) => (
+                <div key={idx} className="bg-white rounded-2xl shadow-lg p-8 md:p-12">
+                  <div className="flex items-center gap-4 mb-8">
+                    <div className="bg-green-900 text-white rounded-full w-16 h-16 flex items-center justify-center">
+                      <span className="text-2xl font-bold">Day {daySchedule.day}</span>
+                    </div>
+                    <div>
+                      <h2 className="text-2xl font-bold text-gray-900">Day {daySchedule.day}</h2>
+                      <p className="text-gray-600">{daySchedule.date}</p>
+                    </div>
+                  </div>
+
+                  <div className="space-y-4">
+                    {daySchedule.scheduleItems?.map((item, itemIdx) => (
+                      <div
+                        key={itemIdx}
+                        className="flex gap-4 p-4 rounded-xl hover:bg-gray-50 transition-colors"
+                      >
+                        <div className="bg-orange-100 text-orange-700 px-4 py-2 rounded-lg font-semibold h-fit whitespace-nowrap">
+                          {item.time}
+                        </div>
+                        <div className="flex-1">
+                          <h4 className="font-bold text-gray-900 text-lg mb-1">{item.title}</h4>
+                          {item.description && (
+                            <p className="text-gray-600">{item.description}</p>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ))}
+
+              {(!event.schedule || event.schedule.length === 0) && (
+                <div className="bg-white rounded-2xl shadow-lg p-12 text-center">
+                  <i className="fi fi-rr-calendar text-6xl text-gray-300 mb-4"></i>
+                  <p className="text-gray-500">Schedule coming soon...</p>
+                </div>
+              )}
+            </motion.div>
+          )}
+
+          {activeTab === 'highlights' && (
+            <motion.div
+              key="highlights"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              className="bg-white rounded-2xl shadow-lg p-8 md:p-12"
+            >
+              <h2 className="text-3xl font-bold text-gray-900 mb-8">Key Highlights</h2>
+              <div className="grid md:grid-cols-2 gap-6">
+                {event.highlights?.map((highlight, idx) => (
+                  <div
+                    key={idx}
+                    className="bg-gradient-to-br from-orange-50 to-red-50 rounded-xl p-6 border-2 border-orange-200"
+                  >
+                    <h3 className="text-xl font-bold text-gray-900 mb-3 flex items-start gap-3">
+                      <i className="fi fi-rr-star text-orange-500 mt-1"></i>
+                      {highlight.title}
+                    </h3>
+                    <p className="text-gray-700">{highlight.description}</p>
+                  </div>
+                ))}
+              </div>
+
+              {(!event.highlights || event.highlights.length === 0) && (
+                <div className="text-center py-12">
+                  <i className="fi fi-rr-sparkles text-6xl text-gray-300 mb-4"></i>
+                  <p className="text-gray-500">Highlights coming soon...</p>
+                </div>
+              )}
+            </motion.div>
+          )}
+
+          {activeTab === 'venue' && (
+            <motion.div
+              key="venue"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              className="bg-white rounded-2xl shadow-lg p-8 md:p-12"
+            >
+              <h2 className="text-3xl font-bold text-gray-900 mb-8">Venue Information</h2>
+
+              <div className="space-y-6">
+                <div>
+                  <h3 className="text-xl font-bold text-gray-900 mb-2">{event.venue.name}</h3>
+                  <p className="text-gray-700 flex items-start gap-2">
+                    <i className="fi fi-rr-marker text-orange-500 mt-1"></i>
+                    {event.venue.address}
+                  </p>
+                </div>
+
+                {event.venue.mapLink && (
+                  <a
+                    href={event.venue.mapLink}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-colors"
+                  >
+                    <i className="fi fi-rr-map"></i>
+                    Open in Maps
+                  </a>
+                )}
+
+                {event.contactInfo && event.contactInfo.length > 0 && (
+                  <div className="mt-8">
+                    <h3 className="text-xl font-bold text-gray-900 mb-4">Contact Information</h3>
+                    <div className="grid md:grid-cols-2 gap-4">
+                      {event.contactInfo.map((contact, idx) => (
+                        <div key={idx} className="bg-gray-50 rounded-xl p-4">
+                          <p className="font-semibold text-gray-900">{contact.name}</p>
+                          {contact.role && <p className="text-sm text-gray-600">{contact.role}</p>}
+                          {contact.phone && (
+                            <p className="text-gray-700 mt-2">
+                              <i className="fi fi-rr-phone-call mr-2"></i>
+                              {contact.phone}
+                            </p>
+                          )}
+                          {contact.email && (
+                            <p className="text-gray-700">
+                              <i className="fi fi-rr-envelope mr-2"></i>
+                              {contact.email}
+                            </p>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </motion.div>
+          )}
+
+          {activeTab === 'organizers' && (
+            <motion.div
+              key="organizers"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              className="bg-white rounded-2xl shadow-lg p-8 md:p-12"
+            >
+              <h2 className="text-3xl font-bold text-gray-900 mb-8">Organized By</h2>
+
+              {event.organizers && event.organizers.length > 0 ? (
+                <div className="grid md:grid-cols-2 gap-8">
+                  {event.organizers.map((organizer, idx) => (
+                    <div key={idx} className="text-center">
+                      {organizer.logo && (
+                        <img
+                          src={organizer.logo}
+                          alt={organizer.name}
+                          className="h-24 mx-auto mb-4 object-contain"
+                        />
+                      )}
+                      <h3 className="text-xl font-bold text-gray-900">{organizer.name}</h3>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-12">
+                  <i className="fi fi-rr-users text-6xl text-gray-300 mb-4"></i>
+                  <p className="text-gray-500">Organizer information coming soon...</p>
+                </div>
+              )}
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+
+      {/* Booking Modal */}
+      <BookingModal
+        show={showBookingModal}
+        event={event}
+        onClose={() => setShowBookingModal(false)}
+      />
+
+      {/* Floating Action Button - Download Brochure */}
+      {event.brochureUrl && (
+        <button
+          onClick={handleDownloadBrochure}
+          className="fixed bottom-8 right-8 bg-orange-500 text-white p-4 rounded-full shadow-2xl hover:bg-orange-600 transform hover:scale-110 transition-all z-50"
+          title="Download Brochure"
+        >
+          <i className="fi fi-rr-download text-2xl"></i>
+        </button>
+      )}
+    </div>
+  );
+}
+
+// Booking Modal Component
+function BookingModal({ show, event, onClose }) {
+  const [bookingType, setBookingType] = useState('ticket');
+  const [formData, setFormData] = useState({
+    name: '',
+    email: '',
+    phone: '',
+    numberOfTickets: 1,
+    businessType: '',
+    stallSize: ''
+  });
+  const [submitting, setSubmitting] = useState(false);
+
+  if (!show || !event) return null;
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setSubmitting(true);
+
+    try {
+      const bookingData = {
+        bookingType,
+        guestInfo: {
+          name: formData.name,
+          email: formData.email,
+          phone: formData.phone
+        },
+        numberOfTickets: bookingType === 'ticket' ? formData.numberOfTickets : 1,
+        totalAmount: event.ticketPrice * (bookingType === 'ticket' ? formData.numberOfTickets : 1),
+        stallDetails: bookingType === 'stall' ? {
+          businessType: formData.businessType,
+          stallSize: formData.stallSize
+        } : undefined
+      };
+
+      const response = await eventService.createBooking(event.slug, bookingData);
+      alert(`Booking successful! Reference: ${response.data.bookingReference}`);
+      onClose();
+    } catch (error) {
+      console.error('Booking error:', error);
+      alert(error.message || 'Failed to create booking');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  return (
+    <AnimatePresence>
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        onClick={onClose}
+        className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+      >
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          exit={{ opacity: 0, scale: 0.9 }}
+          onClick={(e) => e.stopPropagation()}
+          className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto"
+        >
+          <div className="sticky top-0 bg-white border-b border-gray-200 p-6 flex items-center justify-between">
+            <h2 className="text-2xl font-bold text-gray-900">Book Your Spot</h2>
+            <button
+              onClick={onClose}
+              className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+            >
+              <i className="fi fi-rr-cross text-xl"></i>
+            </button>
+          </div>
+
+          <form onSubmit={handleSubmit} className="p-6 space-y-6">
+            {/* Booking Type Selection */}
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-3">
+                Booking Type
+              </label>
+              <div className="grid grid-cols-2 gap-4">
+                <button
+                  type="button"
+                  onClick={() => setBookingType('ticket')}
+                  className={`p-4 rounded-xl border-2 transition-all ${
+                    bookingType === 'ticket'
+                      ? 'border-green-900 bg-green-50'
+                      : 'border-gray-200 hover:border-gray-300'
+                  }`}
+                >
+                  <i className="fi fi-rr-ticket text-2xl mb-2"></i>
+                  <p className="font-semibold">Entry Ticket</p>
+                </button>
+                {event.stallsAvailable && (
+                  <button
+                    type="button"
+                    onClick={() => setBookingType('stall')}
+                    className={`p-4 rounded-xl border-2 transition-all ${
+                      bookingType === 'stall'
+                        ? 'border-green-900 bg-green-50'
+                        : 'border-gray-200 hover:border-gray-300'
+                    }`}
+                  >
+                    <i className="fi fi-rr-shop text-2xl mb-2"></i>
+                    <p className="font-semibold">Book a Stall</p>
+                  </button>
+                )}
+              </div>
+            </div>
+
+            {/* Contact Information */}
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  Full Name *
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={formData.name}
+                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-900"
+                  placeholder="Enter your name"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  Email *
+                </label>
+                <input
+                  type="email"
+                  required
+                  value={formData.email}
+                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-900"
+                  placeholder="your@email.com"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  Phone Number *
+                </label>
+                <input
+                  type="tel"
+                  required
+                  value={formData.phone}
+                  onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-900"
+                  placeholder="+91 XXXXX XXXXX"
+                />
+              </div>
+            </div>
+
+            {/* Ticket-specific fields */}
+            {bookingType === 'ticket' && (
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  Number of Tickets
+                </label>
+                <input
+                  type="number"
+                  min="1"
+                  max="10"
+                  value={formData.numberOfTickets}
+                  onChange={(e) => setFormData({ ...formData, numberOfTickets: parseInt(e.target.value) })}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-900"
+                />
+              </div>
+            )}
+
+            {/* Stall-specific fields */}
+            {bookingType === 'stall' && (
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    Business Type *
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={formData.businessType}
+                    onChange={(e) => setFormData({ ...formData, businessType: e.target.value })}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-900"
+                    placeholder="e.g., Clothing, Food, Art"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    Stall Size
+                  </label>
+                  <select
+                    required
+                    value={formData.stallSize}
+                    onChange={(e) => setFormData({ ...formData, stallSize: e.target.value })}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-900"
+                  >
+                    <option value="">Select size</option>
+                    <option value="5x5">5x5 ft (Small)</option>
+                    <option value="8x5">8x5 ft (Large)</option>
+                  </select>
+                </div>
+              </div>
+            )}
+
+            {/* Submit Button */}
+            <button
+              type="submit"
+              disabled={submitting}
+              className="w-full py-4 bg-gradient-to-r from-green-900 to-green-700 text-white rounded-xl font-bold text-lg hover:shadow-lg transform hover:scale-105 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {submitting ? 'Processing...' : 'Confirm Booking'}
+            </button>
+          </form>
+        </motion.div>
+      </motion.div>
+    </AnimatePresence>
+  );
+}

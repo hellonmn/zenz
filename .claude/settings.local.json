@@ -5,7 +5,17 @@
       "Bash(npm install:*)",
       "Bash(node server.js:*)",
       "Bash(curl:*)",
-      "Bash(cat:*)"
+      "Bash(cat:*)",
+      "Bash(node -e \"require(''./routes/uploadRoutes'')\")",
+      "Bash(node:*)",
+      "Bash(npm start)",
+      "Bash(pkill:*)",
+      "Bash(taskkill:*)",
+      "Bash(netstat:*)",
+      "Bash(findstr:*)",
+      "Bash(tasklist:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)"
     ]
   }
 }

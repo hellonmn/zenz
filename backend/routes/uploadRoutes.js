@@ -4,6 +4,11 @@ const { protect } = require('../middlewares/authMiddleware');
 const upload = require('../config/multerConfig');
 const { uploadImages, deleteImage } = require('../controllers/uploadController');
 
+// Test route (no auth required)
+router.get('/test', (req, res) => {
+  res.json({ message: 'Upload route is working!' });
+});
+
 // All routes require authentication
 router.use(protect);
 
