@@ -479,7 +479,7 @@ export default function EventDetails() {
       </div>
 
       {/* Fixed Bottom Bar */}
-      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4 safe-area-bottom">
+      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4">
         {userBooking ? (
           <div className="space-y-2">
             <div className={`w-full py-4 rounded-2xl font-bold text-lg flex items-center justify-center gap-2 ${
