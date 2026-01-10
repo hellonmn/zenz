@@ -92,7 +92,7 @@ export default function Likes() {
 
   return (
     <div className="bg-gray-50 min-h-screen pb-24">
-      <Header />
+
 
       {/* Header */}
       <div className="px-6 pt-6 pb-4" style={{ backgroundColor: '#1f3121' }}>

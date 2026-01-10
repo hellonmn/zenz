@@ -1127,9 +1127,6 @@ export default function TripDetailsPage() {
                       </div>
                     </div>
 
-                    <p className="text-sm text-gray-500 text-center">
-                      Confirmation email sent to {bookingData.customerDetails?.email}
-                    </p>
                   </div>
                 </motion.div>
               )}

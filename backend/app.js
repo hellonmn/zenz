@@ -4,8 +4,18 @@ const path = require('path');
 
 const app = express();
 
+// CORS Configuration - Allow all frontend URLs
+const corsOptions = {
+  origin: true, // Allow all origins
+  credentials: true, // Allow cookies and authorization headers
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+  exposedHeaders: ['Content-Range', 'X-Content-Range'],
+  maxAge: 86400 // Cache preflight requests for 24 hours
+};
+
 // Middleware
-app.use(cors());
+app.use(cors(corsOptions));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
@@ -43,7 +53,13 @@ app.use('/api/admin/categories', require('./routes/adminCategoryRoutes'));
 
 // Health check
 app.get('/health', (req, res) => {
-  res.json({ status: 'OK', message: 'Tourism API is running' });
+  const { getDatabaseType } = require('./config/database');
+  res.json({
+    status: 'OK',
+    message: 'Tourism API is running',
+    database: getDatabaseType(),
+    timestamp: new Date().toISOString()
+  });
 });
 
 // 404 handler

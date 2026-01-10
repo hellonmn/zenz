@@ -83,7 +83,7 @@ export default function MyBookings() {
     <>
       {/* Main Content */}
       <div className="min-h-screen bg-gray-50 pb-20">
-        <Header />
+
 
         {/* Page Header */}
         <div className="px-6 pt-6 pb-4" style={{ backgroundColor: '#1f3121' }}>
