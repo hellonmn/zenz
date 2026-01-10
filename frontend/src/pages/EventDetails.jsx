@@ -1,15 +1,15 @@
-import { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
-import { eventService } from '../services/eventService';
-import { authService } from '../services/authService';
+import { useState, useEffect } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import { motion, AnimatePresence } from "framer-motion";
+import { eventService } from "../services/eventService";
+import { authService } from "../services/authService";
 
 export default function EventDetails() {
   const { slug } = useParams();
   const navigate = useNavigate();
   const [event, setEvent] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState('about');
+  const [activeTab, setActiveTab] = useState("about");
   const [showBookingSheet, setShowBookingSheet] = useState(false);
   const [user, setUser] = useState(null);
 
@@ -20,9 +20,9 @@ export default function EventDetails() {
     setUser(currentUser);
 
     // Check if user just logged in with booking intent
-    const bookingIntent = localStorage.getItem('bookingIntent');
-    if (bookingIntent === 'true' && authService.isAuthenticated()) {
-      localStorage.removeItem('bookingIntent');
+    const bookingIntent = localStorage.getItem("bookingIntent");
+    if (bookingIntent === "true" && authService.isAuthenticated()) {
+      localStorage.removeItem("bookingIntent");
       setShowBookingSheet(true);
     }
   }, [slug]);
@@ -33,7 +33,7 @@ export default function EventDetails() {
       const response = await eventService.getEventBySlug(slug);
       setEvent(response.data);
     } catch (error) {
-      console.error('Error fetching event:', error);
+      console.error("Error fetching event:", error);
     } finally {
       setLoading(false);
     }
@@ -41,7 +41,7 @@ export default function EventDetails() {
 
   const handleDownloadBrochure = () => {
     if (event?.brochureUrl) {
-      window.open(event.brochureUrl, '_blank');
+      window.open(event.brochureUrl, "_blank");
     }
   };
 
@@ -49,9 +49,9 @@ export default function EventDetails() {
     // Check if user is logged in
     if (!authService.isAuthenticated()) {
       // Store intended action and redirect to login
-      localStorage.setItem('redirectAfterLogin', `/events/${slug}`);
-      localStorage.setItem('bookingIntent', 'true');
-      navigate('/login');
+      localStorage.setItem("redirectAfterLogin", `/events/${slug}`);
+      localStorage.setItem("bookingIntent", "true");
+      navigate("/login");
       return;
     }
 
@@ -59,11 +59,11 @@ export default function EventDetails() {
   };
 
   const formatDate = (date) => {
-    return new Date(date).toLocaleDateString('en-US', {
-      weekday: 'long',
-      month: 'long',
-      day: 'numeric',
-      year: 'numeric'
+    return new Date(date).toLocaleDateString("en-US", {
+      weekday: "long",
+      month: "long",
+      day: "numeric",
+      year: "numeric",
     });
   };
 
@@ -89,10 +89,14 @@ export default function EventDetails() {
           <div className="w-20 h-20 mx-auto mb-4 bg-gray-200 rounded-full flex items-center justify-center">
             <i className="fi fi-rr-calendar-exclamation text-3xl text-gray-400"></i>
           </div>
-          <h2 className="text-xl font-bold text-gray-900 mb-2">Event Not Found</h2>
-          <p className="text-gray-600 mb-6">This event doesn't exist or has been removed.</p>
+          <h2 className="text-xl font-bold text-gray-900 mb-2">
+            Event Not Found
+          </h2>
+          <p className="text-gray-600 mb-6">
+            This event doesn't exist or has been removed.
+          </p>
           <button
-            onClick={() => navigate('/')}
+            onClick={() => navigate("/")}
             className="px-6 py-3 bg-green-900 text-white rounded-full font-semibold"
           >
             Go Home
@@ -104,285 +108,329 @@ export default function EventDetails() {
 
   return (
     <div className="min-h-screen bg-gray-50 pb-24">
-      {/* Hero Banner */}
-      <div className="relative h-72 bg-gradient-to-br from-orange-400 via-red-400 to-pink-500">
-        {event.bannerImage && (
-          <img
-            src={event.bannerImage}
-            alt={event.title}
-            className="w-full h-full object-cover"
-          />
-        )}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent"></div>
-
-        {/* Back Button */}
-        <button
-          onClick={() => navigate(-1)}
-          className="absolute top-4 left-4 w-10 h-10 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center text-white"
-        >
-          <i className="fi fi-rr-arrow-left"></i>
-        </button>
-
-        {/* Share Button */}
-        <button
-          onClick={() => navigator.share?.({ title: event.title, url: window.location.href })}
-          className="absolute top-4 right-4 w-10 h-10 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center text-white"
-        >
-          <i className="fi fi-rr-share"></i>
-        </button>
-
-        {/* Event Title Overlay */}
-        <div className="absolute bottom-0 left-0 right-0 p-4">
-          {event.edition && (
-            <span className="inline-block bg-orange-500 text-white text-xs font-bold px-3 py-1 rounded-full mb-2">
-              {event.edition}
-            </span>
+      <div className="">
+        {/* Hero Banner */}
+        <div className="relative h-72 bg-gradient-to-br from-orange-400 via-red-400 to-pink-500">
+          {event.bannerImage && (
+            <img
+              src={event.bannerImage}
+              alt={event.title}
+              className="w-full h-full object-cover"
+            />
           )}
-          <h1 className="text-2xl md:text-3xl font-bold text-white mb-1">
-            {event.title}
-          </h1>
-          <p className="text-white/90 text-sm md:text-base">
-            {event.tagline}
-          </p>
-        </div>
-      </div>
+          <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent"></div>
 
-      {/* Quick Info Cards */}
-      <div className="px-4 -mt-6 mb-4">
-        <div className="bg-white rounded-2xl shadow-lg p-4 space-y-3">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-orange-100 rounded-full flex items-center justify-center flex-shrink-0">
-              <i className="fi fi-rr-calendar text-orange-600"></i>
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-xs text-gray-500">Date</p>
-              <p className="text-sm font-semibold text-gray-900 truncate">
-                {formatDate(event.startDate)}
-              </p>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0">
-              <i className="fi fi-rr-marker text-green-600"></i>
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-xs text-gray-500">Venue</p>
-              <p className="text-sm font-semibold text-gray-900 truncate">
-                {event.venue.name}
-              </p>
-            </div>
-          </div>
-
-          {event.ticketPrice === 0 ? (
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
-                <i className="fi fi-rr-ticket text-blue-600"></i>
-              </div>
-              <div className="flex-1">
-                <p className="text-xs text-gray-500">Entry</p>
-                <p className="text-sm font-bold text-green-600">FREE</p>
-              </div>
-            </div>
-          ) : (
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
-                <i className="fi fi-rr-indian-rupee-sign text-blue-600"></i>
-              </div>
-              <div className="flex-1">
-                <p className="text-xs text-gray-500">Price</p>
-                <p className="text-sm font-bold text-gray-900">₹{event.ticketPrice}</p>
-              </div>
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* Download Brochure Button */}
-      {event.brochureUrl && (
-        <div className="px-4 mb-4">
+          {/* Back Button */}
           <button
-            onClick={handleDownloadBrochure}
-            className="w-full bg-gradient-to-r from-orange-500 to-red-500 text-white py-3 rounded-xl font-semibold flex items-center justify-center gap-2 shadow-lg active:scale-95 transition-transform"
+            onClick={() => navigate(-1)}
+            className="absolute top-4 left-4 w-10 h-10 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center text-white"
           >
-            <i className="fi fi-rr-download"></i>
-            Download Brochure
+            <i className="fi fi-rr-arrow-left"></i>
           </button>
+
+          {/* Share Button */}
+          <button
+            onClick={() =>
+              navigator.share?.({
+                title: event.title,
+                url: window.location.href,
+              })
+            }
+            className="absolute top-4 right-4 w-10 h-10 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center text-white"
+          >
+            <i className="fi fi-rr-share"></i>
+          </button>
+
+          {/* Event Title Overlay */}
+          <div className="absolute bottom-0 left-0 right-0 p-4">
+            {event.edition && (
+              <span className="inline-block bg-orange-500 text-white text-xs font-bold px-3 py-1 rounded-full mb-2">
+                {event.edition}
+              </span>
+            )}
+            <h1 className="text-2xl md:text-3xl font-bold text-white mb-1">
+              {event.title}
+            </h1>
+            <p className="text-white/90 text-sm md:text-base">
+              {event.tagline}
+            </p>
+          </div>
         </div>
-      )}
 
-      {/* Tabs */}
-      <div className="px-4 mb-4">
-        <div className="bg-white rounded-xl p-1 shadow-sm flex gap-1 overflow-x-auto no-scrollbar">
-          {['about', 'schedule', 'highlights', 'venue'].map((tab) => (
-            <button
-              key={tab}
-              onClick={() => setActiveTab(tab)}
-              className={`flex-1 px-4 py-2 rounded-lg font-semibold capitalize text-sm whitespace-nowrap transition-all ${
-                activeTab === tab
-                  ? 'bg-green-900 text-white shadow-md'
-                  : 'text-gray-600 hover:bg-gray-50'
-              }`}
-            >
-              {tab}
-            </button>
-          ))}
-        </div>
-      </div>
+        {/* Quick Info Cards */}
+        <div className="px-4 mt-4 mb-4">
+          <div className="bg-white rounded-2xl border-2 border-gray-200 p-4 space-y-3">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-orange-100 rounded-full flex items-center justify-center flex-shrink-0">
+                <i className="fi fi-rr-calendar text-orange-600"></i>
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-xs text-gray-500">Date</p>
+                <p className="text-sm font-semibold text-gray-900 truncate">
+                  {formatDate(event.startDate)}
+                </p>
+              </div>
+            </div>
 
-      {/* Tab Content */}
-      <div className="px-4 space-y-4">
-        <AnimatePresence mode="wait">
-          {activeTab === 'about' && (
-            <motion.div
-              key="about"
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
-              className="bg-white rounded-2xl p-4 shadow-sm"
-            >
-              <h3 className="text-lg font-bold text-gray-900 mb-3">About</h3>
-              <p className="text-gray-700 text-sm leading-relaxed whitespace-pre-line">
-                {event.aboutEvent}
-              </p>
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0">
+                <i className="fi fi-rr-marker text-green-600"></i>
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-xs text-gray-500">Venue</p>
+                <p className="text-sm font-semibold text-gray-900 truncate">
+                  {event.venue.name}
+                </p>
+              </div>
+            </div>
 
-              {event.aboutOrganizers && (
-                <div className="mt-6">
-                  <h4 className="text-base font-bold text-gray-900 mb-2">Organizers</h4>
-                  <p className="text-gray-700 text-sm leading-relaxed whitespace-pre-line">
-                    {event.aboutOrganizers}
+            {event.ticketPrice === 0 ? (
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
+                  <i className="fi fi-rr-ticket text-blue-600"></i>
+                </div>
+                <div className="flex-1">
+                  <p className="text-xs text-gray-500">Entry</p>
+                  <p className="text-sm font-bold text-green-600">FREE</p>
+                </div>
+              </div>
+            ) : (
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
+                  <i className="fi fi-rr-indian-rupee-sign text-blue-600"></i>
+                </div>
+                <div className="flex-1">
+                  <p className="text-xs text-gray-500">Price</p>
+                  <p className="text-sm font-bold text-gray-900">
+                    ₹{event.ticketPrice}
                   </p>
                 </div>
-              )}
-            </motion.div>
-          )}
+              </div>
+            )}
+          </div>
+        </div>
 
-          {activeTab === 'schedule' && (
-            <motion.div
-              key="schedule"
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
-              className="space-y-3"
+        {/* Download Brochure Button */}
+        {event.brochureUrl && (
+          <div className="px-4 mb-4">
+            <button
+              onClick={handleDownloadBrochure}
+              className="w-full bg-gradient-to-r from-orange-500 to-red-500 text-white py-3 rounded-xl font-semibold flex items-center justify-center gap-2 shadow-lg active:scale-95 transition-transform"
             >
-              {event.schedule?.map((daySchedule, idx) => (
-                <div key={idx} className="bg-white rounded-2xl p-4 shadow-sm">
-                  <div className="flex items-center gap-3 mb-4">
-                    <div className="w-12 h-12 bg-green-900 text-white rounded-xl flex items-center justify-center flex-shrink-0">
-                      <span className="text-lg font-bold">D{daySchedule.day}</span>
-                    </div>
-                    <div>
-                      <p className="font-bold text-gray-900">Day {daySchedule.day}</p>
-                      <p className="text-sm text-gray-600">{daySchedule.date}</p>
-                    </div>
-                  </div>
+              <i className="fi fi-rr-download"></i>
+              Download Brochure
+            </button>
+          </div>
+        )}
 
-                  <div className="space-y-3">
-                    {daySchedule.scheduleItems?.map((item, itemIdx) => (
-                      <div key={itemIdx} className="flex gap-3">
-                        <div className="bg-orange-50 text-orange-700 px-3 py-1 rounded-lg text-xs font-semibold h-fit whitespace-nowrap">
-                          {item.time}
-                        </div>
-                        <div className="flex-1">
-                          <p className="font-semibold text-gray-900 text-sm">{item.title}</p>
-                          {item.description && (
-                            <p className="text-xs text-gray-600 mt-1">{item.description}</p>
-                          )}
-                        </div>
+        {/* Tabs */}
+        <div className="px-4 mb-4">
+          <div className="bg-white rounded-xl p-1 border-2 border-gray-200 flex gap-1 overflow-x-auto no-scrollbar">
+            {["about", "schedule", "highlights", "venue"].map((tab) => (
+              <button
+                key={tab}
+                onClick={() => setActiveTab(tab)}
+                className={`flex-1 px-4 py-2 rounded-lg font-semibold capitalize text-sm whitespace-nowrap transition-all ${
+                  activeTab === tab
+                    ? "bg-green-900 text-white shadow-md"
+                    : "text-gray-600 hover:bg-gray-50"
+                }`}
+              >
+                {tab}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Tab Content */}
+        <div className="px-4 space-y-4">
+          <AnimatePresence mode="wait">
+            {activeTab === "about" && (
+              <motion.div
+                key="about"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                className="bg-white rounded-2xl p-4 border-2 border-gray-200"
+              >
+                <h3 className="text-lg font-bold text-gray-900 mb-3">About</h3>
+                <p className="text-gray-700 text-sm leading-relaxed whitespace-pre-line">
+                  {event.aboutEvent}
+                </p>
+
+                {event.aboutOrganizers && (
+                  <div className="mt-6">
+                    <h4 className="text-base font-bold text-gray-900 mb-2">
+                      Organizers
+                    </h4>
+                    <p className="text-gray-700 text-sm leading-relaxed whitespace-pre-line">
+                      {event.aboutOrganizers}
+                    </p>
+                  </div>
+                )}
+              </motion.div>
+            )}
+
+            {activeTab === "schedule" && (
+              <motion.div
+                key="schedule"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                className="space-y-3"
+              >
+                {event.schedule?.map((daySchedule, idx) => (
+                  <div key={idx} className="bg-white rounded-2xl p-4 border-2 border-gray-200">
+                    <div className="flex items-center gap-3 mb-4">
+                      <div className="w-12 h-12 bg-green-900 text-white rounded-xl flex items-center justify-center flex-shrink-0">
+                        <span className="text-lg font-bold">
+                          D{daySchedule.day}
+                        </span>
                       </div>
-                    ))}
-                  </div>
-                </div>
-              ))}
-            </motion.div>
-          )}
-
-          {activeTab === 'highlights' && (
-            <motion.div
-              key="highlights"
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
-              className="bg-white rounded-2xl p-4 shadow-sm"
-            >
-              <h3 className="text-lg font-bold text-gray-900 mb-4">Key Highlights</h3>
-              <div className="space-y-3">
-                {event.highlights?.map((highlight, idx) => (
-                  <div key={idx} className="flex gap-3 pb-3 border-b border-gray-100 last:border-0">
-                    <div className="w-8 h-8 bg-orange-100 rounded-full flex items-center justify-center flex-shrink-0">
-                      <i className="fi fi-rr-star text-orange-600 text-sm"></i>
+                      <div>
+                        <p className="font-bold text-gray-900">
+                          Day {daySchedule.day}
+                        </p>
+                        <p className="text-sm text-gray-600">
+                          {daySchedule.date}
+                        </p>
+                      </div>
                     </div>
-                    <div className="flex-1">
-                      <h4 className="font-semibold text-gray-900 text-sm mb-1">
-                        {highlight.title}
-                      </h4>
-                      <p className="text-xs text-gray-600">{highlight.description}</p>
+
+                    <div className="space-y-3">
+                      {daySchedule.scheduleItems?.map((item, itemIdx) => (
+                        <div key={itemIdx} className="flex gap-3">
+                          <div className="bg-orange-50 text-orange-700 px-3 py-1 rounded-lg text-xs font-semibold h-fit whitespace-nowrap">
+                            {item.time}
+                          </div>
+                          <div className="flex-1">
+                            <p className="font-semibold text-gray-900 text-sm">
+                              {item.title}
+                            </p>
+                            {item.description && (
+                              <p className="text-xs text-gray-600 mt-1">
+                                {item.description}
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                      ))}
                     </div>
                   </div>
                 ))}
-              </div>
-            </motion.div>
-          )}
+              </motion.div>
+            )}
 
-          {activeTab === 'venue' && (
-            <motion.div
-              key="venue"
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
-              className="bg-white rounded-2xl p-4 shadow-sm"
-            >
-              <h3 className="text-lg font-bold text-gray-900 mb-4">Venue</h3>
-
-              <div className="space-y-4">
-                <div>
-                  <p className="font-semibold text-gray-900 mb-1">{event.venue.name}</p>
-                  <p className="text-sm text-gray-600 flex items-start gap-2">
-                    <i className="fi fi-rr-marker text-orange-500 mt-0.5"></i>
-                    {event.venue.address}
-                  </p>
-                </div>
-
-                {event.venue.mapLink && (
-                  <a
-                    href={event.venue.mapLink}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="block w-full py-3 bg-blue-600 text-white text-center rounded-xl font-semibold text-sm active:scale-95 transition-transform"
-                  >
-                    <i className="fi fi-rr-map mr-2"></i>
-                    Open in Maps
-                  </a>
-                )}
-
-                {event.contactInfo && event.contactInfo.length > 0 && (
-                  <div className="mt-6">
-                    <h4 className="font-semibold text-gray-900 mb-3">Contact</h4>
-                    {event.contactInfo.map((contact, idx) => (
-                      <div key={idx} className="bg-gray-50 rounded-xl p-3 mb-2">
-                        <p className="font-semibold text-gray-900 text-sm">{contact.name}</p>
-                        {contact.role && <p className="text-xs text-gray-600">{contact.role}</p>}
-                        {contact.phone && (
-                          <a href={`tel:${contact.phone}`} className="text-sm text-blue-600 mt-1 flex items-center gap-1">
-                            <i className="fi fi-rr-phone-call"></i>
-                            {contact.phone}
-                          </a>
-                        )}
+            {activeTab === "highlights" && (
+              <motion.div
+                key="highlights"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                className="bg-white rounded-2xl p-4 border-2 border-gray-200"
+              >
+                <h3 className="text-lg font-bold text-gray-900 mb-4">
+                  Key Highlights
+                </h3>
+                <div className="space-y-3">
+                  {event.highlights?.map((highlight, idx) => (
+                    <div
+                      key={idx}
+                      className="flex gap-3 pb-3 border-b border-gray-100 last:border-0"
+                    >
+                      <div className="w-8 h-8 bg-orange-100 rounded-full flex items-center justify-center flex-shrink-0">
+                        <i className="fi fi-rr-star text-orange-600 text-sm"></i>
                       </div>
-                    ))}
+                      <div className="flex-1">
+                        <h4 className="font-semibold text-gray-900 text-sm mb-1">
+                          {highlight.title}
+                        </h4>
+                        <p className="text-xs text-gray-600">
+                          {highlight.description}
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </motion.div>
+            )}
+
+            {activeTab === "venue" && (
+              <motion.div
+                key="venue"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                className="bg-white rounded-2xl p-4 border-2 border-gray-200"
+              >
+                <h3 className="text-lg font-bold text-gray-900 mb-4">Venue</h3>
+
+                <div className="space-y-4">
+                  <div>
+                    <p className="font-semibold text-gray-900 mb-1">
+                      {event.venue.name}
+                    </p>
+                    <p className="text-sm text-gray-600 flex items-start gap-2">
+                      <i className="fi fi-rr-marker text-orange-500 mt-0.5"></i>
+                      {event.venue.address}
+                    </p>
                   </div>
-                )}
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
+
+                  {event.venue.mapLink && (
+                    <a
+                      href={event.venue.mapLink}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="block flex items-center justify-center w-full py-3 bg-green-900 text-white text-center rounded-xl font-semibold text-sm active:scale-95 transition-transform"
+                    >
+                      <i className="fi fi-rr-map mr-2"></i>
+                      Open in Maps
+                    </a>
+                  )}
+
+                  {event.contactInfo && event.contactInfo.length > 0 && (
+                    <div className="mt-6">
+                      <h4 className="font-semibold text-gray-900 mb-3">
+                        Contact
+                      </h4>
+                      {event.contactInfo.map((contact, idx) => (
+                        <div
+                          key={idx}
+                          className="bg-gray-50 rounded-xl p-3 mb-2"
+                        >
+                          <p className="font-semibold text-gray-900 text-sm">
+                            {contact.name}
+                          </p>
+                          {contact.role && (
+                            <p className="text-xs text-gray-600">
+                              {contact.role}
+                            </p>
+                          )}
+                          {contact.phone && (
+                            <a
+                              href={`tel:${contact.phone}`}
+                              className="text-sm text-blue-600 mt-1 flex items-center gap-1"
+                            >
+                              <i className="fi fi-rr-phone-call"></i>
+                              {contact.phone}
+                            </a>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
       </div>
 
       {/* Fixed Bottom Bar */}
-      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4 shadow-lg safe-area-bottom">
+      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4">
         <button
           onClick={handleBookNow}
-          className="w-full bg-gradient-to-r from-green-900 to-green-700 text-white py-4 rounded-2xl font-bold text-lg shadow-lg active:scale-95 transition-transform flex items-center justify-center gap-2"
+          className="w-full bg-green-900 text-white py-4 rounded-2xl font-bold text-lg active:scale-95 transition-transform flex items-center justify-center gap-2"
         >
           <i className="fi fi-rr-ticket"></i>
           Book Now
@@ -402,25 +450,25 @@ export default function EventDetails() {
 
 // Booking Bottom Sheet Component
 function BookingBottomSheet({ show, event, user, onClose }) {
-  const [bookingType, setBookingType] = useState('ticket');
+  const [bookingType, setBookingType] = useState("ticket");
   const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    phone: '',
+    name: "",
+    email: "",
+    phone: "",
     numberOfTickets: 1,
-    businessType: '',
-    stallSize: ''
+    businessType: "",
+    stallSize: "",
   });
   const [submitting, setSubmitting] = useState(false);
 
   // Auto-fill form when user data is available
   useEffect(() => {
     if (user) {
-      setFormData(prev => ({
+      setFormData((prev) => ({
         ...prev,
-        name: user.name || '',
-        email: user.email || '',
-        phone: user.phone || user.phoneNumber || ''
+        name: user.name || "",
+        email: user.email || "",
+        phone: user.phone || user.phoneNumber || "",
       }));
     }
   }, [user]);
@@ -430,9 +478,9 @@ function BookingBottomSheet({ show, event, user, onClose }) {
   // Check if field has value from user profile
   const hasProfileData = (field) => {
     if (!user) return false;
-    if (field === 'name') return !!user.name;
-    if (field === 'email') return !!user.email;
-    if (field === 'phone') return !!(user.phone || user.phoneNumber);
+    if (field === "name") return !!user.name;
+    if (field === "email") return !!user.email;
+    if (field === "phone") return !!(user.phone || user.phoneNumber);
     return false;
   };
 
@@ -446,24 +494,35 @@ function BookingBottomSheet({ show, event, user, onClose }) {
         guestInfo: {
           name: formData.name,
           email: formData.email,
-          phone: formData.phone
+          phone: formData.phone,
         },
-        numberOfTickets: bookingType === 'ticket' ? formData.numberOfTickets : 1,
-        totalAmount: event.ticketPrice * (bookingType === 'ticket' ? formData.numberOfTickets : 1),
-        stallDetails: bookingType === 'stall' ? {
-          businessType: formData.businessType,
-          stallSize: formData.stallSize
-        } : undefined
+        numberOfTickets:
+          bookingType === "ticket" ? formData.numberOfTickets : 1,
+        totalAmount:
+          event.ticketPrice *
+          (bookingType === "ticket" ? formData.numberOfTickets : 1),
+        stallDetails:
+          bookingType === "stall"
+            ? {
+                businessType: formData.businessType,
+                stallSize: formData.stallSize,
+              }
+            : undefined,
       };
 
-      const response = await eventService.createBooking(event.slug, bookingData);
+      const response = await eventService.createBooking(
+        event.slug,
+        bookingData
+      );
 
       // Show success message
-      alert(`Booking confirmed! Your reference: ${response.data.bookingReference}`);
+      alert(
+        `Booking confirmed! Your reference: ${response.data.bookingReference}`
+      );
       onClose();
     } catch (error) {
-      console.error('Booking error:', error);
-      alert(error.message || 'Failed to create booking. Please try again.');
+      console.error("Booking error:", error);
+      alert(error.message || "Failed to create booking. Please try again.");
     } finally {
       setSubmitting(false);
     }
@@ -479,10 +538,10 @@ function BookingBottomSheet({ show, event, user, onClose }) {
         className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50"
       >
         <motion.div
-          initial={{ y: '100%' }}
+          initial={{ y: "100%" }}
           animate={{ y: 0 }}
-          exit={{ y: '100%' }}
-          transition={{ type: 'spring', damping: 30, stiffness: 300 }}
+          exit={{ y: "100%" }}
+          transition={{ type: "spring", damping: 30, stiffness: 300 }}
           onClick={(e) => e.stopPropagation()}
           className="fixed bottom-0 left-0 right-0 bg-white rounded-t-3xl shadow-2xl max-h-[85vh] overflow-y-auto"
         >
@@ -490,7 +549,9 @@ function BookingBottomSheet({ show, event, user, onClose }) {
           <div className="sticky top-0 bg-white pt-2 pb-4 px-4 border-b border-gray-200">
             <div className="w-12 h-1 bg-gray-300 rounded-full mx-auto mb-4"></div>
             <div className="flex items-center justify-between">
-              <h2 className="text-xl font-bold text-gray-900">Book Your Spot</h2>
+              <h2 className="text-xl font-bold text-gray-900">
+                Book Your Spot
+              </h2>
               <button
                 onClick={onClose}
                 className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center"
@@ -509,11 +570,11 @@ function BookingBottomSheet({ show, event, user, onClose }) {
               <div className="grid grid-cols-2 gap-3">
                 <button
                   type="button"
-                  onClick={() => setBookingType('ticket')}
+                  onClick={() => setBookingType("ticket")}
                   className={`p-4 rounded-xl border-2 transition-all ${
-                    bookingType === 'ticket'
-                      ? 'border-green-900 bg-green-50'
-                      : 'border-gray-200 bg-white'
+                    bookingType === "ticket"
+                      ? "border-green-900 bg-green-50"
+                      : "border-gray-200 bg-white"
                   }`}
                 >
                   <i className="fi fi-rr-ticket text-2xl mb-2"></i>
@@ -525,11 +586,11 @@ function BookingBottomSheet({ show, event, user, onClose }) {
                 {event.stallsAvailable && (
                   <button
                     type="button"
-                    onClick={() => setBookingType('stall')}
+                    onClick={() => setBookingType("stall")}
                     className={`p-4 rounded-xl border-2 transition-all ${
-                      bookingType === 'stall'
-                        ? 'border-green-900 bg-green-50'
-                        : 'border-gray-200 bg-white'
+                      bookingType === "stall"
+                        ? "border-green-900 bg-green-50"
+                        : "border-gray-200 bg-white"
                     }`}
                   >
                     <i className="fi fi-rr-shop text-2xl mb-2"></i>
@@ -541,7 +602,7 @@ function BookingBottomSheet({ show, event, user, onClose }) {
 
             {/* Contact Information - Only show fields that need to be filled */}
             <div className="space-y-3">
-              {!hasProfileData('name') && (
+              {!hasProfileData("name") && (
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-1">
                     Full Name *
@@ -550,14 +611,16 @@ function BookingBottomSheet({ show, event, user, onClose }) {
                     type="text"
                     required
                     value={formData.name}
-                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                    onChange={(e) =>
+                      setFormData({ ...formData, name: e.target.value })
+                    }
                     className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-900 text-sm"
                     placeholder="Enter your name"
                   />
                 </div>
               )}
 
-              {!hasProfileData('email') && (
+              {!hasProfileData("email") && (
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-1">
                     Email *
@@ -566,14 +629,16 @@ function BookingBottomSheet({ show, event, user, onClose }) {
                     type="email"
                     required
                     value={formData.email}
-                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                    onChange={(e) =>
+                      setFormData({ ...formData, email: e.target.value })
+                    }
                     className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-900 text-sm"
                     placeholder="your@email.com"
                   />
                 </div>
               )}
 
-              {!hasProfileData('phone') && (
+              {!hasProfileData("phone") && (
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-1">
                     Phone Number *
@@ -582,7 +647,9 @@ function BookingBottomSheet({ show, event, user, onClose }) {
                     type="tel"
                     required
                     value={formData.phone}
-                    onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                    onChange={(e) =>
+                      setFormData({ ...formData, phone: e.target.value })
+                    }
                     className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-900 text-sm"
                     placeholder="+91 XXXXX XXXXX"
                   />
@@ -591,7 +658,7 @@ function BookingBottomSheet({ show, event, user, onClose }) {
             </div>
 
             {/* Ticket-specific fields */}
-            {bookingType === 'ticket' && (
+            {bookingType === "ticket" && (
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-1">
                   Number of Tickets
@@ -601,14 +668,19 @@ function BookingBottomSheet({ show, event, user, onClose }) {
                   min="1"
                   max="10"
                   value={formData.numberOfTickets}
-                  onChange={(e) => setFormData({ ...formData, numberOfTickets: parseInt(e.target.value) })}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      numberOfTickets: parseInt(e.target.value),
+                    })
+                  }
                   className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-900 text-sm"
                 />
               </div>
             )}
 
             {/* Stall-specific fields */}
-            {bookingType === 'stall' && (
+            {bookingType === "stall" && (
               <div className="space-y-3">
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-1">
@@ -618,7 +690,9 @@ function BookingBottomSheet({ show, event, user, onClose }) {
                     type="text"
                     required
                     value={formData.businessType}
-                    onChange={(e) => setFormData({ ...formData, businessType: e.target.value })}
+                    onChange={(e) =>
+                      setFormData({ ...formData, businessType: e.target.value })
+                    }
                     className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-900 text-sm"
                     placeholder="e.g., Clothing, Food, Art"
                   />
@@ -631,7 +705,9 @@ function BookingBottomSheet({ show, event, user, onClose }) {
                   <select
                     required
                     value={formData.stallSize}
-                    onChange={(e) => setFormData({ ...formData, stallSize: e.target.value })}
+                    onChange={(e) =>
+                      setFormData({ ...formData, stallSize: e.target.value })
+                    }
                     className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-900 text-sm"
                   >
                     <option value="">Select size</option>
@@ -648,7 +724,7 @@ function BookingBottomSheet({ show, event, user, onClose }) {
               disabled={submitting}
               className="w-full py-4 bg-gradient-to-r from-green-900 to-green-700 text-white rounded-2xl font-bold text-base shadow-lg active:scale-95 transition-transform disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {submitting ? 'Processing...' : 'Confirm Booking'}
+              {submitting ? "Processing..." : "Confirm Booking"}
             </button>
           </form>
         </motion.div>
