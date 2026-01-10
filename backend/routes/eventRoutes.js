@@ -12,10 +12,12 @@ const {
 // Public routes
 router.get('/', getAllEvents);
 router.get('/bookings/:reference', getBookingByReference);
-router.get('/:slug', getEventBySlug);
 
-// Protected routes
+// Protected routes (must come before /:slug to match correctly)
 router.get('/:slug/my-booking', protect, getUserBooking);
 router.post('/:slug/book', createEventBooking);
+
+// General slug route (must be last)
+router.get('/:slug', getEventBySlug);
 
 module.exports = router;

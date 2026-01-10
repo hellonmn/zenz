@@ -1,9 +1,12 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
+import Lottie from "lottie-react";
 import { eventService } from "../services/eventService";
 import { authService } from "../services/authService";
 import logoImage from "../assets/logo.jpg";
+import planeAnimation from "../../public/assets/json/planeAnimation.json";
+import successAnimation from "../../public/assets/json/successMark.json";
 
 export default function EventDetails() {
   const { slug } = useParams();
@@ -509,13 +512,25 @@ export default function EventDetails() {
             
           </div>
         ) : (
-          <button
-            onClick={handleBookNow}
-            className="w-full bg-green-900 text-white py-4 rounded-2xl font-bold text-lg active:scale-95 transition-transform flex items-center justify-center gap-2"
-          >
-            <i className="fi fi-rr-ticket"></i>
-            Book Now
-          </button>
+          <div className="flex items-center gap-3">
+            <div className="flex flex-col">
+              <p className="text-xs text-gray-500">Starting from</p>
+              <p className="text-2xl font-bold text-green-900">
+                {event.ticketPrice === 0 ? (
+                  "Free"
+                ) : (
+                  <>₹{event.ticketPrice}</>
+                )}
+              </p>
+            </div>
+            <button
+              onClick={handleBookNow}
+              className="flex-1 bg-green-900 text-white py-4 rounded-2xl font-bold text-lg active:scale-95 transition-transform flex items-center justify-center gap-2"
+            >
+              <i className="fi fi-rr-ticket"></i>
+              Book Now
+            </button>
+          </div>
         )}
       </div>
 
@@ -541,7 +556,8 @@ function BookingBottomSheet({ show, event, user, onClose }) {
     businessType: "",
     stallSize: "",
   });
-  const [submitting, setSubmitting] = useState(false);
+  const [bookingStep, setBookingStep] = useState("form");
+  const [bookingData, setBookingData] = useState(null);
 
   // Auto-fill form when user data is available
   useEffect(() => {
@@ -554,6 +570,14 @@ function BookingBottomSheet({ show, event, user, onClose }) {
       }));
     }
   }, [user]);
+
+  // Reset booking step when modal closes
+  useEffect(() => {
+    if (!show) {
+      setBookingStep("form");
+      setBookingData(null);
+    }
+  }, [show]);
 
   if (!show || !event) return null;
 
@@ -568,10 +592,10 @@ function BookingBottomSheet({ show, event, user, onClose }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setSubmitting(true);
+    setBookingStep("processing");
 
     try {
-      const bookingData = {
+      const bookingPayload = {
         bookingType,
         guestInfo: {
           name: formData.name,
@@ -594,23 +618,20 @@ function BookingBottomSheet({ show, event, user, onClose }) {
 
       const response = await eventService.createBooking(
         event.slug,
-        bookingData
+        bookingPayload
       );
 
-      // Show success message based on booking status
-      const message = response.data.status === 'confirmed'
-        ? `Booking confirmed! Your reference: ${response.data.bookingReference}`
-        : `Booking submitted successfully! Your reference: ${response.data.bookingReference}. Awaiting approval.`;
+      setBookingData(response.data);
+      setBookingStep("success");
 
-      alert(message);
-      onClose();
-      // Reload page to show updated booking status
-      window.location.reload();
+      // Reload after 3 seconds to show updated status
+      setTimeout(() => {
+        window.location.reload();
+      }, 3000);
     } catch (error) {
       console.error("Booking error:", error);
       alert(error.message || "Failed to create booking. Please try again.");
-    } finally {
-      setSubmitting(false);
+      setBookingStep("form");
     }
   };
 
@@ -636,18 +657,99 @@ function BookingBottomSheet({ show, event, user, onClose }) {
             <div className="w-12 h-1 bg-gray-300 rounded-full mx-auto mb-4"></div>
             <div className="flex items-center justify-between">
               <h2 className="text-xl font-bold text-gray-900">
-                Book Your Spot
+                {bookingStep === "form"
+                  ? "Book Your Spot"
+                  : bookingStep === "processing"
+                  ? "Processing"
+                  : "Booking Confirmed!"}
               </h2>
-              <button
-                onClick={onClose}
-                className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center"
-              >
-                <i className="fi fi-rr-cross text-gray-600"></i>
-              </button>
+              {bookingStep === "form" && (
+                <button
+                  onClick={onClose}
+                  className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center"
+                >
+                  <i className="fi fi-rr-cross text-gray-600"></i>
+                </button>
+              )}
             </div>
           </div>
 
-          <form onSubmit={handleSubmit} className="p-4 space-y-4 pb-6">
+          {/* Processing Step */}
+          {bookingStep === "processing" && (
+            <div className="p-8 flex flex-col items-center justify-center min-h-[400px]">
+              <Lottie
+                animationData={planeAnimation}
+                loop={true}
+                style={{ width: 200, height: 200 }}
+              />
+              <p className="text-xl font-semibold text-gray-900 mt-4">
+                Processing your booking...
+              </p>
+              <p className="text-sm text-gray-500 mt-2">Please wait</p>
+            </div>
+          )}
+
+          {/* Success Step */}
+          {bookingStep === "success" && bookingData && (
+            <motion.div
+              className="p-8"
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+            >
+              <div className="flex flex-col items-center">
+                <Lottie
+                  animationData={successAnimation}
+                  loop={false}
+                  style={{ width: 150, height: 150 }}
+                />
+                <h2 className="text-2xl font-bold text-gray-900 mt-4 mb-2">
+                  {bookingData.status === "confirmed"
+                    ? "Booking Confirmed!"
+                    : "Booking Submitted!"}
+                </h2>
+                <p className="text-gray-600 mb-6 text-center">
+                  {bookingData.status === "confirmed"
+                    ? "Your event booking has been confirmed"
+                    : "Your booking is pending approval"}
+                </p>
+
+                <div className="bg-gray-50 rounded-xl p-4 w-full mb-4">
+                  <div className="flex justify-between items-center mb-2">
+                    <span className="text-sm text-gray-600">Reference</span>
+                    <span className="font-mono font-bold text-gray-900">
+                      {bookingData.bookingReference}
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-center mb-2">
+                    <span className="text-sm text-gray-600">Event</span>
+                    <span className="font-semibold text-gray-900">
+                      {event.title}
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-center mb-2">
+                    <span className="text-sm text-gray-600">Type</span>
+                    <span className="font-semibold text-gray-900 capitalize">
+                      {bookingData.bookingType}
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-gray-600">Total</span>
+                    <span className="font-bold text-green-700 text-lg">
+                      ₹{bookingData.totalAmount}
+                    </span>
+                  </div>
+                </div>
+
+                <p className="text-sm text-gray-500 text-center">
+                  Confirmation email sent to {bookingData.guestInfo?.email}
+                </p>
+              </div>
+            </motion.div>
+          )}
+
+          {/* Form Step */}
+          {bookingStep === "form" && (
+            <form onSubmit={handleSubmit} className="p-4 space-y-4 pb-6">
             {/* Booking Type Selection */}
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-2">
@@ -814,12 +916,13 @@ function BookingBottomSheet({ show, event, user, onClose }) {
             {/* Submit Button */}
             <button
               type="submit"
-              disabled={submitting}
+              disabled={bookingStep === "processing"}
               className="w-full py-4 bg-gradient-to-r from-green-900 to-green-700 text-white rounded-2xl font-bold text-base shadow-lg active:scale-95 transition-transform disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {submitting ? "Processing..." : "Confirm Booking"}
+              {bookingStep === "processing" ? "Processing..." : "Confirm Booking"}
             </button>
           </form>
+          )}
         </motion.div>
       </motion.div>
     </AnimatePresence>
