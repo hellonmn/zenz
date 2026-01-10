@@ -27,6 +27,7 @@ import Analytics from "./pages/admin/Analytics";
 import CategoryManagement from "./pages/admin/CategoryManagement";
 import EventsManagement from "./pages/admin/EventsManagement";
 import EventForm from "./pages/admin/EventForm";
+import BannerManagement from "./pages/admin/BannerManagement";
 
 
 function AnimatedRoutes() {
@@ -71,6 +72,7 @@ function AnimatedRoutes() {
           <Route path="/admin/events" element={<EventsManagement />} />
           <Route path="/admin/events/create" element={<EventForm />} />
           <Route path="/admin/events/edit/:id" element={<EventForm />} />
+          <Route path="/admin/banner" element={<BannerManagement />} />
         </Route>
 
         {/* Catch-all 404 route */}

@@ -12,12 +12,19 @@ export default function EventDetails() {
   const [activeTab, setActiveTab] = useState("about");
   const [showBookingSheet, setShowBookingSheet] = useState(false);
   const [user, setUser] = useState(null);
+  const [userBooking, setUserBooking] = useState(null);
+  const [expandedDay, setExpandedDay] = useState(null);
 
   useEffect(() => {
     fetchEventDetails();
     // Check if user is logged in
     const currentUser = authService.getCurrentUser();
     setUser(currentUser);
+
+    // Check if user already booked this event
+    if (currentUser) {
+      checkUserBooking();
+    }
 
     // Check if user just logged in with booking intent
     const bookingIntent = localStorage.getItem("bookingIntent");
@@ -39,6 +46,18 @@ export default function EventDetails() {
     }
   };
 
+  const checkUserBooking = async () => {
+    try {
+      const response = await eventService.getUserBooking(slug);
+      if (response.data) {
+        setUserBooking(response.data);
+      }
+    } catch (error) {
+      // No booking found or error - user hasn't booked
+      console.log("No existing booking found");
+    }
+  };
+
   const handleDownloadBrochure = () => {
     if (event?.brochureUrl) {
       window.open(event.brochureUrl, "_blank");
@@ -46,6 +65,12 @@ export default function EventDetails() {
   };
 
   const handleBookNow = () => {
+    // Check if user already booked
+    if (userBooking) {
+      alert(`You have already booked this event. Reference: ${userBooking.bookingReference}`);
+      return;
+    }
+
     // Check if user is logged in
     if (!authService.isAuthenticated()) {
       // Store intended action and redirect to login
@@ -108,53 +133,55 @@ export default function EventDetails() {
 
   return (
     <div className="min-h-screen bg-gray-50 pb-24">
+      {/* Back and Share Buttons */}
+      <div className="fixed top-4 left-0 right-0 z-20 px-4 flex items-center justify-between">
+        <button
+          onClick={() => navigate(-1)}
+          className="w-10 h-10 bg-white/90 backdrop-blur-md rounded-full flex items-center justify-center text-gray-900 shadow-lg"
+        >
+          <i className="fi fi-rr-arrow-left"></i>
+        </button>
+        <button
+          onClick={() =>
+            navigator.share?.({
+              title: event.title,
+              url: window.location.href,
+            })
+          }
+          className="w-10 h-10 bg-white/90 backdrop-blur-md rounded-full flex items-center justify-center text-gray-900 shadow-lg"
+        >
+          <i className="fi fi-rr-share"></i>
+        </button>
+      </div>
+
       <div className="">
-        {/* Hero Banner */}
-        <div className="relative h-72 bg-gradient-to-br from-orange-400 via-red-400 to-pink-500">
+        {/* Hero Banner - Portrait Ratio */}
+        <div className="px-4 pt-4">
           {event.bannerImage && (
-            <img
-              src={event.bannerImage}
-              alt={event.title}
-              className="w-full h-full object-cover"
-            />
+            <div className="relative rounded-3xl overflow-hidden shadow-2xl">
+              <img
+                src={event.bannerImage}
+                alt={event.title}
+                className="w-full aspect-[3/4] object-cover"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent"></div>
+
+              {/* Event Title Overlay */}
+              <div className="absolute bottom-0 left-0 right-0 p-6">
+                {event.edition && (
+                  <span className="inline-block bg-orange-500 text-white text-xs font-bold px-3 py-1.5 rounded-full mb-3">
+                    {event.edition}
+                  </span>
+                )}
+                <h1 className="text-3xl md:text-4xl font-bold text-white mb-2">
+                  {event.title}
+                </h1>
+                <p className="text-white/90 text-base md:text-lg">
+                  {event.tagline}
+                </p>
+              </div>
+            </div>
           )}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent"></div>
-
-          {/* Back Button */}
-          <button
-            onClick={() => navigate(-1)}
-            className="absolute top-4 left-4 w-10 h-10 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center text-white"
-          >
-            <i className="fi fi-rr-arrow-left"></i>
-          </button>
-
-          {/* Share Button */}
-          <button
-            onClick={() =>
-              navigator.share?.({
-                title: event.title,
-                url: window.location.href,
-              })
-            }
-            className="absolute top-4 right-4 w-10 h-10 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center text-white"
-          >
-            <i className="fi fi-rr-share"></i>
-          </button>
-
-          {/* Event Title Overlay */}
-          <div className="absolute bottom-0 left-0 right-0 p-4">
-            {event.edition && (
-              <span className="inline-block bg-orange-500 text-white text-xs font-bold px-3 py-1 rounded-full mb-2">
-                {event.edition}
-              </span>
-            )}
-            <h1 className="text-2xl md:text-3xl font-bold text-white mb-1">
-              {event.title}
-            </h1>
-            <p className="text-white/90 text-sm md:text-base">
-              {event.tagline}
-            </p>
-          </div>
         </div>
 
         {/* Quick Info Cards */}
@@ -279,45 +306,70 @@ export default function EventDetails() {
                 exit={{ opacity: 0, y: -10 }}
                 className="space-y-3"
               >
-                {event.schedule?.map((daySchedule, idx) => (
-                  <div key={idx} className="bg-white rounded-2xl p-4 border-2 border-gray-200">
-                    <div className="flex items-center gap-3 mb-4">
-                      <div className="w-12 h-12 bg-green-900 text-white rounded-xl flex items-center justify-center flex-shrink-0">
-                        <span className="text-lg font-bold">
-                          D{daySchedule.day}
-                        </span>
-                      </div>
-                      <div>
-                        <p className="font-bold text-gray-900">
-                          Day {daySchedule.day}
-                        </p>
-                        <p className="text-sm text-gray-600">
-                          {daySchedule.date}
-                        </p>
-                      </div>
-                    </div>
-
-                    <div className="space-y-3">
-                      {daySchedule.scheduleItems?.map((item, itemIdx) => (
-                        <div key={itemIdx} className="flex gap-3">
-                          <div className="bg-orange-50 text-orange-700 px-3 py-1 rounded-lg text-xs font-semibold h-fit whitespace-nowrap">
-                            {item.time}
+                {event.schedule?.map((daySchedule, idx) => {
+                  const isExpanded = expandedDay === idx;
+                  return (
+                    <div key={idx} className="bg-white rounded-2xl border-2 border-gray-200 overflow-hidden">
+                      <button
+                        onClick={() => setExpandedDay(isExpanded ? null : idx)}
+                        className="w-full p-4 flex items-center justify-between hover:bg-gray-50 transition-colors"
+                      >
+                        <div className="flex items-center gap-3">
+                          <div className="w-12 h-12 bg-green-900 text-white rounded-xl flex items-center justify-center flex-shrink-0">
+                            <span className="text-lg font-bold">
+                              D{daySchedule.day}
+                            </span>
                           </div>
-                          <div className="flex-1">
-                            <p className="font-semibold text-gray-900 text-sm">
-                              {item.title}
+                          <div className="text-left">
+                            <p className="font-bold text-gray-900">
+                              Day {daySchedule.day}
                             </p>
-                            {item.description && (
-                              <p className="text-xs text-gray-600 mt-1">
-                                {item.description}
-                              </p>
-                            )}
+                            <p className="text-sm text-gray-600">
+                              {daySchedule.date}
+                            </p>
                           </div>
                         </div>
-                      ))}
+                        <motion.i
+                          animate={{ rotate: isExpanded ? 180 : 0 }}
+                          transition={{ duration: 0.2 }}
+                          className="fi fi-rr-angle-down text-gray-600"
+                        ></motion.i>
+                      </button>
+
+                      <AnimatePresence>
+                        {isExpanded && (
+                          <motion.div
+                            initial={{ height: 0, opacity: 0 }}
+                            animate={{ height: "auto", opacity: 1 }}
+                            exit={{ height: 0, opacity: 0 }}
+                            transition={{ duration: 0.3 }}
+                            className="overflow-hidden"
+                          >
+                            <div className="px-4 pb-4 space-y-3 border-t border-gray-200 pt-4">
+                              {daySchedule.scheduleItems?.map((item, itemIdx) => (
+                                <div key={itemIdx} className="flex gap-3">
+                                  <div className="bg-orange-50 text-orange-700 px-3 py-1 rounded-lg text-xs font-semibold h-fit whitespace-nowrap">
+                                    {item.time}
+                                  </div>
+                                  <div className="flex-1">
+                                    <p className="font-semibold text-gray-900 text-sm">
+                                      {item.title}
+                                    </p>
+                                    {item.description && (
+                                      <p className="text-xs text-gray-600 mt-1">
+                                        {item.description}
+                                      </p>
+                                    )}
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </motion.div>
             )}
 
@@ -427,14 +479,35 @@ export default function EventDetails() {
       </div>
 
       {/* Fixed Bottom Bar */}
-      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4">
-        <button
-          onClick={handleBookNow}
-          className="w-full bg-green-900 text-white py-4 rounded-2xl font-bold text-lg active:scale-95 transition-transform flex items-center justify-center gap-2"
-        >
-          <i className="fi fi-rr-ticket"></i>
-          Book Now
-        </button>
+      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4 safe-area-bottom">
+        {userBooking ? (
+          <div className="space-y-2">
+            <div className={`w-full py-4 rounded-2xl font-bold text-lg flex items-center justify-center gap-2 ${
+              userBooking.status === 'confirmed'
+                ? 'bg-green-100 text-green-700 border-2 border-green-300'
+                : userBooking.status === 'pending'
+                ? 'bg-yellow-100 text-yellow-700 border-2 border-yellow-300'
+                : 'bg-gray-100 text-gray-700 border-2 border-gray-300'
+            }`}>
+              <i className={`fi ${
+                userBooking.status === 'confirmed' ? 'fi-rr-check-circle' : 'fi-rr-clock'
+              }`}></i>
+              {userBooking.status === 'confirmed' ? 'Booked' :
+               userBooking.status === 'pending' ? 'Booking Pending' : 'Booking ' + userBooking.status}
+            </div>
+            <p className="text-center text-sm text-gray-600">
+              Reference: <span className="font-semibold">{userBooking.bookingReference}</span>
+            </p>
+          </div>
+        ) : (
+          <button
+            onClick={handleBookNow}
+            className="w-full bg-green-900 text-white py-4 rounded-2xl font-bold text-lg active:scale-95 transition-transform flex items-center justify-center gap-2"
+          >
+            <i className="fi fi-rr-ticket"></i>
+            Book Now
+          </button>
+        )}
       </div>
 
       {/* Booking Bottom Sheet */}
@@ -515,11 +588,15 @@ function BookingBottomSheet({ show, event, user, onClose }) {
         bookingData
       );
 
-      // Show success message
-      alert(
-        `Booking confirmed! Your reference: ${response.data.bookingReference}`
-      );
+      // Show success message based on booking status
+      const message = response.data.status === 'confirmed'
+        ? `Booking confirmed! Your reference: ${response.data.bookingReference}`
+        : `Booking submitted successfully! Your reference: ${response.data.bookingReference}. Awaiting approval.`;
+
+      alert(message);
       onClose();
+      // Reload page to show updated booking status
+      window.location.reload();
     } catch (error) {
       console.error("Booking error:", error);
       alert(error.message || "Failed to create booking. Please try again.");
@@ -643,16 +720,23 @@ function BookingBottomSheet({ show, event, user, onClose }) {
                   <label className="block text-sm font-semibold text-gray-700 mb-1">
                     Phone Number *
                   </label>
-                  <input
-                    type="tel"
-                    required
-                    value={formData.phone}
-                    onChange={(e) =>
-                      setFormData({ ...formData, phone: e.target.value })
-                    }
-                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-900 text-sm"
-                    placeholder="+91 XXXXX XXXXX"
-                  />
+                  <div className="flex items-center gap-2">
+                    <div className="px-4 py-3 bg-gray-100 border border-gray-300 rounded-xl text-sm font-semibold text-gray-700">
+                      +91
+                    </div>
+                    <input
+                      type="tel"
+                      required
+                      value={formData.phone.replace(/^\+91/, '')}
+                      onChange={(e) => {
+                        const value = e.target.value.replace(/\D/g, '').slice(0, 10);
+                        setFormData({ ...formData, phone: '+91' + value });
+                      }}
+                      className="flex-1 px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-900 text-sm"
+                      placeholder="XXXXX XXXXX"
+                      maxLength="10"
+                    />
+                  </div>
                 </div>
               )}
             </div>

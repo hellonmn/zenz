@@ -5,7 +5,8 @@ const {
   getAllEvents,
   getEventBySlug,
   createEventBooking,
-  getBookingByReference
+  getBookingByReference,
+  getUserBooking
 } = require('../controllers/eventController');
 
 // Public routes
@@ -14,6 +15,7 @@ router.get('/bookings/:reference', getBookingByReference);
 router.get('/:slug', getEventBySlug);
 
 // Protected routes
+router.get('/:slug/my-booking', protect, getUserBooking);
 router.post('/:slug/book', createEventBooking);
 
 module.exports = router;

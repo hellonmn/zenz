@@ -24,6 +24,11 @@ export const eventService = {
   getBookingByReference: async (reference) => {
     return await apiRequest(`/events/bookings/${reference}`);
   },
+
+  // Get user's booking for an event
+  getUserBooking: async (slug) => {
+    return await apiRequest(`/events/${slug}/my-booking`);
+  },
 };
 
 export const adminEventService = {

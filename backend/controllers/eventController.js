@@ -79,7 +79,9 @@ exports.createEventBooking = async (req, res) => {
     const bookingData = {
       event: event._id,
       ...req.body,
-      user: req.user?._id
+      user: req.user?._id,
+      // Auto-approve if event has auto-approve enabled
+      status: event.autoApproveBookings ? 'confirmed' : 'pending'
     };
 
     const booking = await EventBooking.create(bookingData);
@@ -93,7 +95,9 @@ exports.createEventBooking = async (req, res) => {
 
     res.status(201).json({
       success: true,
-      message: 'Booking created successfully',
+      message: event.autoApproveBookings
+        ? 'Booking confirmed successfully'
+        : 'Booking created successfully. Awaiting approval.',
       data: booking
     });
   } catch (error) {
@@ -112,6 +116,41 @@ exports.getBookingByReference = async (req, res) => {
 
     if (!booking) {
       return res.status(404).json({ message: 'Booking not found' });
+    }
+
+    res.json({
+      success: true,
+      data: booking
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// @desc    Get user's booking for an event
+// @route   GET /api/events/:slug/my-booking
+// @access  Private
+exports.getUserBooking = async (req, res) => {
+  try {
+    if (!req.user) {
+      return res.status(401).json({ message: 'Not authenticated' });
+    }
+
+    const event = await Event.findOne({ slug: req.params.slug });
+    if (!event) {
+      return res.status(404).json({ message: 'Event not found' });
+    }
+
+    const booking = await EventBooking.findOne({
+      event: event._id,
+      $or: [
+        { user: req.user._id },
+        { 'guestInfo.email': req.user.email }
+      ]
+    });
+
+    if (!booking) {
+      return res.status(404).json({ message: 'No booking found' });
     }
 
     res.json({

@@ -144,6 +144,10 @@ const eventSchema = new mongoose.Schema({
     type: Boolean,
     default: false
   },
+  autoApproveBookings: {
+    type: Boolean,
+    default: false
+  },
 
   // SEO
   slug: {

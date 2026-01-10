@@ -11,6 +11,8 @@ export default function EventForm() {
   const [loading, setLoading] = useState(isEdit);
   const [submitting, setSubmitting] = useState(false);
   const [activeSection, setActiveSection] = useState('basic');
+  const [uploadingBanner, setUploadingBanner] = useState(false);
+  const [uploadingBrochure, setUploadingBrochure] = useState(false);
 
   const [formData, setFormData] = useState({
     title: '',
@@ -49,6 +51,7 @@ export default function EventForm() {
     },
     status: 'draft',
     featured: false,
+    autoApproveBookings: false,
     metaDescription: ''
   });
 
@@ -104,6 +107,92 @@ export default function EventForm() {
       alert(error.message || 'Failed to save event');
     } finally {
       setSubmitting(false);
+    }
+  };
+
+  const handleBannerUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      alert('Please upload an image file');
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      alert('Image size should be less than 5MB');
+      return;
+    }
+
+    try {
+      setUploadingBanner(true);
+      const formData = new FormData();
+      formData.append('banner', file);
+
+      const token = localStorage.getItem('token');
+      const response = await fetch('https://zenz-backend.onrender.com/api/admin/upload/banner', {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        body: formData,
+      });
+
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.message || 'Upload failed');
+      }
+
+      updateField('bannerImage', data.bannerUrl);
+      alert('Banner uploaded successfully!');
+    } catch (error) {
+      console.error('Upload error:', error);
+      alert(error.message || 'Failed to upload banner');
+    } finally {
+      setUploadingBanner(false);
+    }
+  };
+
+  const handleBrochureUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    if (file.type !== 'application/pdf') {
+      alert('Please upload a PDF file');
+      return;
+    }
+
+    if (file.size > 10 * 1024 * 1024) {
+      alert('PDF size should be less than 10MB');
+      return;
+    }
+
+    try {
+      setUploadingBrochure(true);
+      const formData = new FormData();
+      formData.append('brochure', file);
+
+      const token = localStorage.getItem('token');
+      const response = await fetch('https://zenz-backend.onrender.com/api/admin/upload/brochure', {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        body: formData,
+      });
+
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.message || 'Upload failed');
+      }
+
+      updateField('brochureUrl', data.brochureUrl);
+      alert('Brochure uploaded successfully!');
+    } catch (error) {
+      console.error('Upload error:', error);
+      alert(error.message || 'Failed to upload brochure');
+    } finally {
+      setUploadingBrochure(false);
     }
   };
 
@@ -341,29 +430,141 @@ export default function EventForm() {
               <div className="grid md:grid-cols-2 gap-6">
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-2">
-                    Banner Image URL *
+                    Banner Image *
                   </label>
-                  <input
-                    type="url"
-                    required
-                    value={formData.bannerImage}
-                    onChange={(e) => updateField('bannerImage', e.target.value)}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-900"
-                    placeholder="https://..."
-                  />
+                  {formData.bannerImage && (
+                    <div className="mb-3 relative h-48 rounded-xl overflow-hidden border-2 border-gray-200">
+                      <img
+                        src={formData.bannerImage}
+                        alt="Banner preview"
+                        className="w-full h-full object-cover"
+                      />
+                      <div className="absolute top-2 right-2">
+                        <button
+                          type="button"
+                          onClick={() => updateField('bannerImage', '')}
+                          className="px-3 py-1 bg-red-600 text-white rounded-lg text-sm hover:bg-red-700"
+                        >
+                          Remove
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                  <div className="flex gap-3">
+                    <label className="flex-1">
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={handleBannerUpload}
+                        disabled={uploadingBanner}
+                        className="hidden"
+                      />
+                      <div
+                        className={`w-full px-4 py-3 border-2 border-dashed border-gray-300 rounded-xl text-center cursor-pointer hover:border-green-900 hover:bg-green-50 transition-colors ${
+                          uploadingBanner ? 'opacity-50 cursor-not-allowed' : ''
+                        }`}
+                      >
+                        {uploadingBanner ? (
+                          <div className="flex items-center justify-center gap-2">
+                            <div className="w-5 h-5 border-2 border-green-900 border-t-transparent rounded-full animate-spin"></div>
+                            <span className="text-gray-600">Uploading...</span>
+                          </div>
+                        ) : (
+                          <>
+                            <i className="fi fi-rr-cloud-upload text-2xl text-gray-400 mb-1"></i>
+                            <p className="text-gray-600 text-sm font-medium">Upload Banner Image</p>
+                            <p className="text-xs text-gray-500 mt-1">PNG, JPG up to 5MB</p>
+                          </>
+                        )}
+                      </div>
+                    </label>
+                    {!formData.bannerImage && (
+                      <div className="flex-1">
+                        <input
+                          type="url"
+                          value={formData.bannerImage}
+                          onChange={(e) => updateField('bannerImage', e.target.value)}
+                          className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-900 h-full"
+                          placeholder="Or paste image URL..."
+                        />
+                      </div>
+                    )}
+                  </div>
                 </div>
 
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-2">
-                    Brochure PDF URL
+                    Brochure PDF
                   </label>
-                  <input
-                    type="url"
-                    value={formData.brochureUrl}
-                    onChange={(e) => updateField('brochureUrl', e.target.value)}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-900"
-                    placeholder="https://..."
-                  />
+                  {formData.brochureUrl && (
+                    <div className="mb-3 bg-blue-50 border-2 border-blue-200 rounded-xl p-4">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <div className="w-12 h-12 bg-blue-600 rounded-lg flex items-center justify-center">
+                            <i className="fi fi-rr-file-pdf text-white text-xl"></i>
+                          </div>
+                          <div>
+                            <p className="font-semibold text-blue-900 text-sm">Brochure Uploaded</p>
+                            <a
+                              href={formData.brochureUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-xs text-blue-600 hover:underline"
+                            >
+                              View PDF
+                            </a>
+                          </div>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => updateField('brochureUrl', '')}
+                          className="px-3 py-1 bg-red-600 text-white rounded-lg text-sm hover:bg-red-700"
+                        >
+                          Remove
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                  <div className="flex gap-3">
+                    <label className="flex-1">
+                      <input
+                        type="file"
+                        accept="application/pdf"
+                        onChange={handleBrochureUpload}
+                        disabled={uploadingBrochure}
+                        className="hidden"
+                      />
+                      <div
+                        className={`w-full px-4 py-3 border-2 border-dashed border-gray-300 rounded-xl text-center cursor-pointer hover:border-green-900 hover:bg-green-50 transition-colors ${
+                          uploadingBrochure ? 'opacity-50 cursor-not-allowed' : ''
+                        }`}
+                      >
+                        {uploadingBrochure ? (
+                          <div className="flex items-center justify-center gap-2">
+                            <div className="w-5 h-5 border-2 border-green-900 border-t-transparent rounded-full animate-spin"></div>
+                            <span className="text-gray-600">Uploading...</span>
+                          </div>
+                        ) : (
+                          <>
+                            <i className="fi fi-rr-cloud-upload text-2xl text-gray-400 mb-1"></i>
+                            <p className="text-gray-600 text-sm font-medium">Upload Brochure PDF</p>
+                            <p className="text-xs text-gray-500 mt-1">PDF up to 10MB</p>
+                          </>
+                        )}
+                      </div>
+                    </label>
+                    {!formData.brochureUrl && (
+                      <div className="flex-1">
+                        <input
+                          type="url"
+                          value={formData.brochureUrl}
+                          onChange={(e) => updateField('brochureUrl', e.target.value)}
+                          className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-900 h-full"
+                          placeholder="Or paste PDF URL..."
+                        />
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
             </motion.div>
@@ -771,6 +972,22 @@ export default function EventForm() {
                   Featured Event
                 </label>
               </div>
+
+              <div className="flex items-center gap-4">
+                <input
+                  type="checkbox"
+                  id="autoApproveBookings"
+                  checked={formData.autoApproveBookings}
+                  onChange={(e) => updateField('autoApproveBookings', e.target.checked)}
+                  className="w-5 h-5 text-green-900 rounded"
+                />
+                <label htmlFor="autoApproveBookings" className="text-lg font-semibold text-gray-900">
+                  Auto-Approve Bookings
+                </label>
+              </div>
+              <p className="text-sm text-gray-600 -mt-2">
+                When enabled, bookings will be automatically confirmed without requiring manual approval
+              </p>
 
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-2">

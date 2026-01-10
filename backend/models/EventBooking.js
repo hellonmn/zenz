@@ -75,8 +75,7 @@ const eventBookingSchema = new mongoose.Schema({
   },
   bookingReference: {
     type: String,
-    unique: true,
-    required: true
+    unique: true
   },
 
   // Additional Info

@@ -36,9 +36,11 @@ export default function AdminLayout() {
   const navItems = [
     { path: '/admin', icon: 'fi-rr-dashboard', label: 'Dashboard', exact: true },
     { path: '/admin/trips', icon: 'fi-rr-map-marker', label: 'Trips' },
+    { path: '/admin/events', icon: 'fi-rr-calendar-star', label: 'Events' },
     { path: '/admin/bookings', icon: 'fi-rr-calendar', label: 'Bookings' },
     { path: '/admin/users', icon: 'fi-rr-users', label: 'Users' },
     { path: '/admin/categories', icon: 'fi-rr-apps', label: 'Categories' },
+    { path: '/admin/banner', icon: 'fi-rr-picture', label: 'Banner' },
     { path: '/admin/analytics', icon: 'fi-rr-chart-line', label: 'Analytics' },
   ];
 
