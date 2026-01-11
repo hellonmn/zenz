@@ -5,6 +5,7 @@ import AuthLayout from "./layouts/AuthLayout";
 import AdminLayout from "./layouts/AdminLayout";
 import Signup from "./pages/auth/Signup";
 import Login from "./pages/auth/Login";
+import OAuthCallback from "./pages/auth/OAuthCallback";
 import Dashboard from "./pages/Dashboard";
 import Home from "./pages/home/Home";
 import DestinationDetails from "./pages/home/DestinationDetails";
@@ -54,6 +55,7 @@ function AnimatedRoutes() {
           <Route path="/details" element={<DestinationDetails />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Signup />} />
+          <Route path="/auth/callback" element={<OAuthCallback />} />
         </Route>
 
         <Route element={<AuthLayout />}>
