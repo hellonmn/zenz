@@ -74,8 +74,7 @@ const eventBookingSchema = new mongoose.Schema({
     default: 'pending'
   },
   bookingReference: {
-    type: String,
-    unique: true
+    type: String
   },
 
   // Additional Info
@@ -107,7 +106,7 @@ eventBookingSchema.pre('save', async function(next) {
 
 // Indexes
 eventBookingSchema.index({ event: 1, status: 1 });
-eventBookingSchema.index({ bookingReference: 1 });
+eventBookingSchema.index({ bookingReference: 1 }, { unique: true });
 eventBookingSchema.index({ 'guestInfo.email': 1 });
 eventBookingSchema.index({ user: 1 });
 

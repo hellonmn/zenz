@@ -72,7 +72,7 @@ const BookingSchema = new mongoose.Schema({
   },
   
   // Reference number
-  bookingReference: { type: String, unique: true },
+  bookingReference: { type: String },
 
   // Notes (admin only)
   adminNotes: String
@@ -89,7 +89,7 @@ BookingSchema.pre('save', async function(next) {
 // Index for queries
 BookingSchema.index({ user: 1, status: 1 });
 BookingSchema.index({ trip: 1, status: 1 });
-BookingSchema.index({ bookingReference: 1 });
+BookingSchema.index({ bookingReference: 1 }, { unique: true });
 BookingSchema.index({ createdAt: -1 });
 
 module.exports = mongoose.model('Booking', BookingSchema);

@@ -152,7 +152,6 @@ const eventSchema = new mongoose.Schema({
   // SEO
   slug: {
     type: String,
-    unique: true,
     lowercase: true,
     trim: true
   },
@@ -192,7 +191,7 @@ eventSchema.pre('save', function(next) {
 
 // Index for search
 eventSchema.index({ title: 'text', description: 'text', tagline: 'text' });
-eventSchema.index({ slug: 1 });
+eventSchema.index({ slug: 1 }, { unique: true });
 eventSchema.index({ status: 1, startDate: 1 });
 
 const Event = mongoose.model('Event', eventSchema);

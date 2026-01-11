@@ -1,3 +1,5 @@
+// app.js
+
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
@@ -54,13 +56,15 @@ app.use('/api/admin/categories', require('./routes/adminCategoryRoutes'));
 // Health check
 app.get('/health', (req, res) => {
   const { getDatabaseType } = require('./config/database');
-  res.json({
+  res.status(200).json({
     status: 'OK',
     message: 'Tourism API is running',
     database: getDatabaseType(),
-    timestamp: new Date().toISOString()
+    timestamp: new Date().toISOString(),
+    uptime: process.uptime()
   });
 });
+
 
 // 404 handler
 app.use((req, res, next) => {

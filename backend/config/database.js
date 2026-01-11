@@ -7,10 +7,7 @@ const DB_TYPE = process.env.DB_TYPE || 'mongodb'; // 'mongodb' or 'mysql'
 // MongoDB Configuration
 const mongoConfig = {
   uri: process.env.MONGO_URI || 'mongodb://localhost:27017/zenz-awara',
-  options: {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-  }
+  options: {}
 };
 
 // MySQL Configuration
@@ -55,19 +52,29 @@ const connectMySQL = async () => {
         host: mysqlConfig.host,
         port: mysqlConfig.port,
         dialect: mysqlConfig.dialect,
-        logging: mysqlConfig.logging,
-        pool: mysqlConfig.pool
+        logging: console.log,
+        pool: mysqlConfig.pool,
+        dialectOptions: {
+          connectTimeout: 60000,
+          ssl: {
+            rejectUnauthorized: false
+          }
+        }
       }
     );
 
     await sequelize.authenticate();
     console.log('✓ MySQL connected successfully');
 
+    // Initialize models after connection
+    const { initializeModels } = require('../models/mysql');
+    initializeModels();
+
     // Sync all models (create tables if they don't exist)
     await sequelize.sync({ alter: true });
     console.log('✓ MySQL tables synchronized');
   } catch (error) {
-    console.error('✗ MySQL connection error:', error.message);
+    console.error('✗ MySQL connection error:', error);
     process.exit(1);
   }
 };
